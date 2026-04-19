@@ -29,6 +29,7 @@ import ArchitectureWhiteboard from "./pages/ArchitectureWhiteboard";
 import AIPDFSummarizer from "./pages/AIPDFSummarizer";
 import TestCaseGenerator from "./pages/TestCaseGenerator";
 import XMLValidator from "./pages/XMLValidator";
+import HermesPage from "./pages/Hermes";
 import { Onboarding } from "./components/Onboarding";
 import { AnimatedBackground } from "./components/AnimatedBackground";
 
@@ -59,6 +60,7 @@ function Router() {
         <Route path="/ai-pdf" component={AIPDFSummarizer} />
         <Route path="/test-generator" component={TestCaseGenerator} />
         <Route path="/xml-validator" component={XMLValidator} />
+        <Route path="/hermes" component={HermesPage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

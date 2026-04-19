@@ -48,6 +48,7 @@ import {
   GitBranch,
   FlaskConical,
   CheckSquare,
+  Brain,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -89,6 +90,7 @@ const menuItemDefs = [
   { icon: FileText, key: "menu.aiPdfSummarizer", path: "/ai-pdf" },
   { icon: FlaskConical, key: "menu.testCaseGenerator", path: "/test-generator" },
   { icon: CheckSquare, key: "menu.xmlValidator", path: "/xml-validator" },
+  { icon: Brain, key: "menu.hermes", path: "/hermes" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

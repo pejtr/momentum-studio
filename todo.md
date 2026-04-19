@@ -942,3 +942,15 @@
 - [ ] AI XML Validator - paste/upload XML, validate against XSD with AI insights
 - [ ] Add all three AI tools to sidebar navigation under "AI Generátor" section
 - [ ] Credits model UI (show remaining AI credits per tool)
+
+## Feature HERMES: Core AI Agent
+- [x] DB schema: hermes_sessions, hermes_messages, hermes_memory tables
+- [x] Backend: hermesRouter with chat, getHistory, clearHistory, getMemory procedures
+- [x] HERMES system prompt: QA/automation expert persona with tool-use instructions
+- [x] Tool-use: executeScript, generateTestCases, validateXML, summarizePDF, webSearch tools
+- [x] Memory system: extract and persist key facts from conversations
+- [ ] Streaming SSE endpoint for real-time token output (future)
+- [x] Frontend: full-page /hermes route with terminal-style chat UI
+- [x] HERMES branding: distinct visual identity (name, avatar, color scheme)
+- [x] HERMES added to sidebar navigation as HERMES AI
+- [ ] Wire HERMES to all AI tool pages as the underlying engine (future)

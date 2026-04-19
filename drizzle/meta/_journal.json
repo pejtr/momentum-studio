@@ -50,6 +50,13 @@
       "when": 1771382770861,
       "tag": "0006_nosy_post",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1776628103955,
+      "tag": "0007_fancy_maximus",
+      "breakpoints": true
     }
   ]
 }

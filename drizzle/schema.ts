@@ -529,3 +529,34 @@ export type InsertJobTag = typeof jobTags.$inferInsert;
 export type SelectJobTag = typeof jobTags.$inferSelect;
 export type InsertJobListingTag = typeof jobListingTags.$inferInsert;
 export type SelectJobListingTag = typeof jobListingTags.$inferSelect;
+
+// ========== HERMES Core AI Agent ==========
+export const hermesMessages = mysqlTable("hermes_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  sessionId: varchar("session_id", { length: 64 }).notNull(),
+  role: mysqlEnum("role", ["system", "user", "assistant", "tool"]).notNull(),
+  content: text("content").notNull(),
+  toolName: varchar("tool_name", { length: 64 }),
+  toolInput: json("tool_input").$type<Record<string, unknown>>(),
+  toolOutput: text("tool_output"),
+  tokens: int("tokens"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type HermesMessage = typeof hermesMessages.$inferSelect;
+export type InsertHermesMessage = typeof hermesMessages.$inferInsert;
+
+export const hermesMemory = mysqlTable("hermes_memory", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  key: varchar("key", { length: 128 }).notNull(),
+  value: text("value").notNull(),
+  category: mysqlEnum("category", ["preference", "fact", "skill", "context", "goal"]).default("fact").notNull(),
+  confidence: int("confidence").default(80).notNull(), // 0-100
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type HermesMemory = typeof hermesMemory.$inferSelect;
+export type InsertHermesMemory = typeof hermesMemory.$inferInsert;

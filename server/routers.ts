@@ -10,6 +10,7 @@ import * as os from "os";
 import { blogRouter } from "./blogRouter";
 import { dockerRouter } from "./dockerRouter";
 import { engagementRouter } from "./engagementRouter";
+import { hermesRouter } from "./routers/hermes";
 
 const scriptNodeSchema = z.object({
   id: z.string(),
@@ -31,6 +32,7 @@ export const appRouter = router({
   blog: blogRouter,
   docker: dockerRouter,
   engagement: engagementRouter,
+  hermes: hermesRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

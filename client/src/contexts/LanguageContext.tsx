@@ -37,6 +37,7 @@ const translations: Record<Language, Record<string, string>> = {
     'menu.aiPdfSummarizer': 'AI PDF Summarizer',
     'menu.testCaseGenerator': 'Test Case Generator',
     'menu.xmlValidator': 'XML Validator',
+    'menu.hermes': 'HERMES AI',
 
     // Common
     'common.earnings': 'Earnings',
@@ -188,6 +189,7 @@ const translations: Record<Language, Record<string, string>> = {
     'menu.aiPdfSummarizer': 'AI PDF Sumarizátor',
     'menu.testCaseGenerator': 'Generátor Testů',
     'menu.xmlValidator': 'XML Validátor',
+    'menu.hermes': 'HERMES AI',
 
     // Common
     'common.earnings': 'Výdělky',
