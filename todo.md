@@ -954,3 +954,10 @@
 - [x] HERMES branding: distinct visual identity (name, avatar, color scheme)
 - [x] HERMES added to sidebar navigation as HERMES AI
 - [ ] Wire HERMES to all AI tool pages as the underlying engine (future)
+
+## Feature: HERMES SSE Streaming
+- [x] SSE Express endpoint: POST /api/hermes/stream with token-by-token LLM output
+- [x] Backend streaming helper using invokeLLMStream async generator in llm.ts
+- [x] Frontend useHermesStream hook consuming fetch + ReadableStream
+- [x] Progressive token rendering in MessageBubble with isStreaming cursor
+- [x] Abort/cancel streaming mid-response via AbortController + Stop button

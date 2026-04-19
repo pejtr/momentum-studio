@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { initializeWebSocket } from "./websocket";
 import { sitemapRouter } from "../sitemapRouter";
+import { hermesStreamRouter } from "../hermesStream";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,6 +40,8 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Sitemap
   app.use(sitemapRouter);
+  // HERMES SSE streaming endpoint (must be before tRPC to avoid body-parser conflict)
+  app.use(hermesStreamRouter);
   // tRPC API
   app.use(
     "/api/trpc",

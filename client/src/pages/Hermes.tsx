@@ -21,6 +21,7 @@ import {
   Cpu,
   MemoryStick,
   X,
+  Square,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { nanoid } from "nanoid";
@@ -32,11 +33,107 @@ interface Message {
   content: string;
   toolName?: string;
   timestamp: Date;
-  isLoading?: boolean;
+  isStreaming?: boolean;
+}
+
+// ─── SSE Streaming Hook ───────────────────────────────────────────────────────
+function useHermesStream() {
+  const abortRef = useRef<AbortController | null>(null);
+
+  const stream = useCallback(
+    async (
+      message: string,
+      sessionId: string,
+      onToken: (token: string) => void,
+      onDone: (fullContent: string) => void,
+      onError: (err: string) => void
+    ) => {
+      // Abort any ongoing stream
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      try {
+        const response = await fetch("/api/hermes/stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, sessionId }),
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        if (!response.body) throw new Error("No response body");
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          let currentEvent = "token";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed === "data: [DONE]") continue;
+
+            if (trimmed.startsWith("event: ")) {
+              currentEvent = trimmed.slice(7);
+              continue;
+            }
+
+            if (trimmed.startsWith("data: ")) {
+              try {
+                const raw = trimmed.slice(6);
+                const parsed = JSON.parse(raw) as string;
+
+                if (currentEvent === "error") {
+                  onError(parsed);
+                } else if (currentEvent === "done") {
+                  onDone(parsed);
+                } else {
+                  onToken(parsed);
+                }
+              } catch {
+                // skip malformed
+              }
+              // reset to default after each data line
+              currentEvent = "token";
+            }
+          }
+        }
+      } catch (err: unknown) {
+        if ((err as Error)?.name === "AbortError") return;
+        onError((err as Error)?.message ?? "Stream error");
+      } finally {
+        abortRef.current = null;
+      }
+    },
+    []
+  );
+
+  const abort = useCallback(() => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+  }, []);
+
+  return { stream, abort };
 }
 
 // ─── HERMES Status Bar ────────────────────────────────────────────────────────
-function HermesStatusBar({ sessionId }: { sessionId: string }) {
+function HermesStatusBar({ sessionId, isStreaming }: { sessionId: string; isStreaming: boolean }) {
   const [time, setTime] = useState(new Date());
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -46,13 +143,16 @@ function HermesStatusBar({ sessionId }: { sessionId: string }) {
   return (
     <div className="flex items-center gap-4 px-4 py-2 border-b border-[#00ff41]/20 bg-black/40 text-xs font-mono text-[#00ff41]/70">
       <div className="flex items-center gap-1.5">
-        <div className="w-2 h-2 rounded-full bg-[#00ff41] animate-pulse shadow-[0_0_6px_#00ff41]" />
-        <span>HERMES ONLINE</span>
+        <div className={cn(
+          "w-2 h-2 rounded-full shadow-[0_0_6px_#00ff41]",
+          isStreaming ? "bg-yellow-400 animate-ping" : "bg-[#00ff41] animate-pulse"
+        )} />
+        <span>{isStreaming ? "TRANSMITTING..." : "HERMES ONLINE"}</span>
       </div>
       <Separator orientation="vertical" className="h-3 bg-[#00ff41]/30" />
       <div className="flex items-center gap-1">
         <Cpu className="w-3 h-3" />
-        <span>CORE AI v2.0</span>
+        <span>CORE AI v2.0 // SSE</span>
       </div>
       <Separator orientation="vertical" className="h-3 bg-[#00ff41]/30" />
       <div className="flex items-center gap-1">
@@ -109,6 +209,9 @@ function MessageBubble({ msg }: { msg: Message }) {
           <span className="text-[#00ff41]/30">
             {msg.timestamp.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}
           </span>
+          {msg.isStreaming && (
+            <span className="text-yellow-400/70 animate-pulse text-[9px]">▶ STREAMING</span>
+          )}
         </div>
 
         <div
@@ -119,13 +222,16 @@ function MessageBubble({ msg }: { msg: Message }) {
               : "bg-[#001a00] border border-[#00ff41]/20 text-[#00ff41]/90"
           )}
         >
-          {msg.isLoading ? (
-            <div className="flex items-center gap-2">
-              <span className="text-[#00ff41]/60">PROCESSING</span>
+          {msg.content ? (
+            <>
+              <Streamdown>{msg.content}</Streamdown>
+              {msg.isStreaming && <span className="animate-pulse text-[#00ff41]">▋</span>}
+            </>
+          ) : (
+            <div className="flex items-center gap-2 text-[#00ff41]/40">
+              <span>PROCESSING</span>
               <span className="animate-pulse">▋</span>
             </div>
-          ) : (
-            <Streamdown>{msg.content}</Streamdown>
           )}
         </div>
       </div>
@@ -269,41 +375,11 @@ export default function HermesPage() {
   const [sessionId, setSessionId] = useState(() => nanoid(16));
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isThinking, setIsThinking] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [showMemory, setShowMemory] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const utils = trpc.useUtils();
-
-  const chatMutation = trpc.hermes.chat.useMutation({
-    onSuccess: (data) => {
-      setMessages((prev) =>
-        prev
-          .filter((m) => !m.isLoading)
-          .concat({
-            id: nanoid(),
-            role: "assistant",
-            content: data.content,
-            timestamp: new Date(),
-          })
-      );
-      setIsThinking(false);
-      utils.hermes.getSessions.invalidate();
-    },
-    onError: (err) => {
-      setMessages((prev) =>
-        prev
-          .filter((m) => !m.isLoading)
-          .concat({
-            id: nanoid(),
-            role: "assistant",
-            content: `**SYSTEM ERROR:** ${err.message}`,
-            timestamp: new Date(),
-          })
-      );
-      setIsThinking(false);
-    },
-  });
+  const { stream, abort } = useHermesStream();
 
   const clearMutation = trpc.hermes.clearSession.useMutation({
     onSuccess: () => {
@@ -335,7 +411,7 @@ export default function HermesPage() {
     }
   }, [history]);
 
-  // Auto-scroll
+  // Auto-scroll on new content
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -344,7 +420,7 @@ export default function HermesPage() {
 
   const handleSend = useCallback(() => {
     const text = input.trim();
-    if (!text || isThinking) return;
+    if (!text || isStreaming) return;
 
     const userMsg: Message = {
       id: nanoid(),
@@ -352,19 +428,56 @@ export default function HermesPage() {
       content: text,
       timestamp: new Date(),
     };
-    const loadingMsg: Message = {
-      id: "loading",
+
+    // Placeholder for streaming assistant message
+    const streamingId = nanoid();
+    const streamingMsg: Message = {
+      id: streamingId,
       role: "assistant",
       content: "",
       timestamp: new Date(),
-      isLoading: true,
+      isStreaming: true,
     };
 
-    setMessages((prev) => [...prev, userMsg, loadingMsg]);
+    setMessages((prev) => [...prev, userMsg, streamingMsg]);
     setInput("");
-    setIsThinking(true);
-    chatMutation.mutate({ message: text, sessionId });
-  }, [input, isThinking, sessionId, chatMutation]);
+    setIsStreaming(true);
+
+    stream(
+      text,
+      sessionId,
+      // onToken — append each token to the streaming message
+      (token) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === streamingId ? { ...m, content: m.content + token } : m
+          )
+        );
+      },
+      // onDone — finalize the message
+      (_fullContent) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === streamingId ? { ...m, isStreaming: false } : m
+          )
+        );
+        setIsStreaming(false);
+        utils.hermes.getSessions.invalidate();
+        utils.hermes.getHistory.invalidate({ sessionId, limit: 50 });
+      },
+      // onError
+      (err) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === streamingId
+              ? { ...m, content: `**SYSTEM ERROR:** ${err}`, isStreaming: false }
+              : m
+          )
+        );
+        setIsStreaming(false);
+      }
+    );
+  }, [input, isStreaming, sessionId, stream, utils]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -374,12 +487,22 @@ export default function HermesPage() {
   };
 
   const handleNewSession = () => {
+    if (isStreaming) abort();
     setSessionId(nanoid(16));
     setMessages([]);
   };
 
-  // Welcome message for new sessions
-  const showWelcome = messages.length === 0 && !isThinking;
+  const handleAbort = () => {
+    abort();
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.isStreaming ? { ...m, isStreaming: false, content: m.content + "\n\n*[aborted]*" } : m
+      )
+    );
+    setIsStreaming(false);
+  };
+
+  const showWelcome = messages.length === 0 && !isStreaming;
 
   return (
     <div className="flex flex-col h-full bg-[#000a00] text-[#00ff41]" style={{ fontFamily: "'Share Tech Mono', 'Courier New', monospace" }}>
@@ -388,11 +511,14 @@ export default function HermesPage() {
         <div className="flex items-center gap-2">
           <div className="relative">
             <Brain className="w-6 h-6 text-[#00ff41]" />
-            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00ff41] animate-pulse" />
+            <div className={cn(
+              "absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full",
+              isStreaming ? "bg-yellow-400 animate-ping" : "bg-[#00ff41] animate-pulse"
+            )} />
           </div>
           <div>
             <h1 className="text-sm font-bold tracking-widest text-[#00ff41]">HERMES</h1>
-            <p className="text-[9px] text-[#00ff41]/50 tracking-widest">CORE AI AGENT // OMNIMATRIX</p>
+            <p className="text-[9px] text-[#00ff41]/50 tracking-widest">CORE AI AGENT // OMNIMATRIX // SSE STREAM</p>
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -410,7 +536,7 @@ export default function HermesPage() {
             size="sm"
             className="h-7 text-xs font-mono text-red-400/60 hover:text-red-400 hover:bg-red-400/10 border border-red-400/20"
             onClick={() => clearMutation.mutate({ sessionId })}
-            disabled={messages.length === 0}
+            disabled={messages.length === 0 || isStreaming}
           >
             <Trash2 className="w-3 h-3 mr-1" />
             CLEAR
@@ -419,14 +545,17 @@ export default function HermesPage() {
       </div>
 
       {/* Status Bar */}
-      <HermesStatusBar sessionId={sessionId} />
+      <HermesStatusBar sessionId={sessionId} isStreaming={isStreaming} />
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         {/* Session Sidebar */}
         <SessionList
           currentSessionId={sessionId}
-          onSelect={(id) => setSessionId(id)}
+          onSelect={(id) => {
+            if (isStreaming) abort();
+            setSessionId(id);
+          }}
           onNew={handleNewSession}
         />
 
@@ -443,7 +572,7 @@ export default function HermesPage() {
                   </div>
                   <div>
                     <p className="text-lg font-bold tracking-widest text-[#00ff41]/80">HERMES READY</p>
-                    <p className="text-xs text-[#00ff41]/40 mt-1 tracking-wider">CORE AI AGENT INITIALIZED</p>
+                    <p className="text-xs text-[#00ff41]/40 mt-1 tracking-wider">REAL-TIME SSE STREAMING ACTIVE</p>
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-4 max-w-md w-full">
                     {[
@@ -475,30 +604,36 @@ export default function HermesPage() {
             <div className="flex gap-2 items-end">
               <div className="flex-1 relative">
                 <Textarea
-                  ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="ENTER COMMAND // SHIFT+ENTER FOR NEWLINE"
+                  placeholder={isStreaming ? "HERMES IS RESPONDING..." : "ENTER COMMAND // SHIFT+ENTER FOR NEWLINE"}
                   className="min-h-[44px] max-h-32 resize-none bg-[#001a00]/80 border-[#00ff41]/30 text-[#00ff41] placeholder:text-[#00ff41]/25 font-mono text-sm focus:border-[#00ff41]/60 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  disabled={isThinking}
+                  disabled={isStreaming}
                 />
               </div>
-              <Button
-                onClick={handleSend}
-                disabled={!input.trim() || isThinking}
-                className="h-11 px-4 bg-[#00ff41]/15 hover:bg-[#00ff41]/25 border border-[#00ff41]/40 text-[#00ff41] font-mono text-xs disabled:opacity-30"
-                variant="outline"
-              >
-                {isThinking ? (
-                  <span className="animate-pulse">▋</span>
-                ) : (
+              {isStreaming ? (
+                <Button
+                  onClick={handleAbort}
+                  className="h-11 px-4 bg-red-500/15 hover:bg-red-500/25 border border-red-500/40 text-red-400 font-mono text-xs"
+                  variant="outline"
+                  title="Abort stream"
+                >
+                  <Square className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSend}
+                  disabled={!input.trim()}
+                  className="h-11 px-4 bg-[#00ff41]/15 hover:bg-[#00ff41]/25 border border-[#00ff41]/40 text-[#00ff41] font-mono text-xs disabled:opacity-30"
+                  variant="outline"
+                >
                   <Send className="w-4 h-4" />
-                )}
-              </Button>
+                </Button>
+              )}
             </div>
             <p className="text-[9px] font-mono text-[#00ff41]/25 mt-1.5 ml-1">
-              HERMES v2.0 // OMNIMATRIX QA CORE // ENTER TO SEND
+              HERMES v2.0 // OMNIMATRIX QA CORE // SSE REAL-TIME STREAM // ENTER TO SEND
             </p>
           </div>
         </div>
