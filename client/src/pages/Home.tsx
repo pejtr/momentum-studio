@@ -77,29 +77,30 @@ function StatCard({
   trendLabel?: string;
 }) {
   return (
-    <Card className="bg-card border-border">
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-            {trendLabel && (
-              <div className="flex items-center gap-1">
-                <TrendingUp
-                  className={`h-3 w-3 ${trend === "up" ? "text-chart-1" : "text-muted-foreground"}`}
-                />
-                <span className="text-xs text-muted-foreground">
-                  {trendLabel}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon className="h-5 w-5 text-primary" />
-          </div>
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(10,24,40,0.95) 0%, rgba(7,14,26,0.98) 100%)',
+      border: '1px solid rgba(77,184,255,0.18)',
+      borderTop: '2px solid #ff9900',
+      borderRadius: '4px',
+      boxShadow: '0 0 20px rgba(77,184,255,0.05), 0 4px 24px rgba(0,0,0,0.4)',
+      padding: '16px'
+    }}>
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold uppercase tracking-widest" style={{color: '#4db8ff', fontFamily: "'Rajdhani', sans-serif"}}>{title}</p>
+          <p className="text-2xl font-bold" style={{color: '#ffcc00', fontFamily: "'Orbitron', monospace", textShadow: '0 0 12px rgba(255,204,0,0.5)'}}>{value}</p>
+          {trendLabel && (
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" style={{color: trend === 'up' ? '#4db8ff' : '#99ccff'}} />
+              <span className="text-xs" style={{color: '#4db8ff'}}>{trendLabel}</span>
+            </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+        <div className="h-10 w-10 flex items-center justify-center" style={{background: 'rgba(255,153,0,0.1)', border: '1px solid rgba(255,153,0,0.3)', borderRadius: '4px', boxShadow: '0 0 10px rgba(255,153,0,0.15)'}}>
+          <Icon className="h-5 w-5" style={{color: '#ff9900', filter: 'drop-shadow(0 0 4px rgba(255,153,0,0.6))'}} />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -322,23 +323,20 @@ export default function Home() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* LCARS Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-2xl font-bold" style={{fontFamily: "'Orbitron', monospace", color: '#ff9900', textShadow: '0 0 14px rgba(255,153,0,0.6), 0 0 32px rgba(255,153,0,0.2)'}}>
             {t('dashboard.welcome')}, {user?.name || "User"}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="mt-1 text-sm" style={{color: '#4db8ff', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.06em'}}>
             {t('dashboard.overview')}
           </p>
         </div>
-        <Badge
-          variant="outline"
-          className="border-chart-1/30 text-chart-1 bg-chart-1/10"
-        >
-          <Activity className="h-3 w-3 mr-1" />
-          {t('status.systemOnline')}
-        </Badge>
+        <div className="flex items-center gap-2 px-3 py-1.5" style={{background: 'rgba(77,184,255,0.08)', border: '1px solid rgba(77,184,255,0.25)', borderRadius: '4px'}}>
+          <Activity className="h-3.5 w-3.5" style={{color: '#4db8ff', filter: 'drop-shadow(0 0 4px rgba(77,184,255,0.8))'}} />
+          <span className="text-xs font-bold tracking-widest" style={{color: '#4db8ff', fontFamily: "'Rajdhani', sans-serif"}}>{t('status.systemOnline')}</span>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -378,17 +376,15 @@ export default function Home() {
         />
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Dynamic Resource Monitor */}
-        <Card className="lg:col-span-2 bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Cpu className="h-4 w-4 text-primary" />
-              {cpuLabel} {t('dashboard.resourceMonitor')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Dynamic Resource Monitor */}
+          <div className="lg:col-span-2" style={{background: 'linear-gradient(135deg, rgba(10,24,40,0.95) 0%, rgba(7,14,26,0.98) 100%)', border: '1px solid rgba(77,184,255,0.18)', borderLeft: '3px solid #ff9900', borderRadius: '4px', boxShadow: '0 0 20px rgba(77,184,255,0.06), 0 4px 24px rgba(0,0,0,0.4)'}}>
+            <div className="px-5 pt-4 pb-2 flex items-center gap-2">
+              <Cpu className="h-4 w-4" style={{color: '#ff9900', filter: 'drop-shadow(0 0 4px rgba(255,153,0,0.7))'}} />
+              <span className="text-sm font-bold tracking-wider" style={{color: '#ff9900', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.08em'}}>{cpuLabel} {t('dashboard.resourceMonitor')}</span>
+            </div>
+          <div className="px-5 pb-4">
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={performanceData}>
@@ -465,18 +461,16 @@ export default function Home() {
                 sublabel={liveMetrics?.memory ? `${Math.round((liveMetrics.memory.usedMB ?? 0) / 1024)}GB` : undefined}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          </div>
 
-        {/* Platform Distribution */}
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <HardDrive className="h-4 w-4 text-primary" />
-              {t('dashboard.platformDistribution')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          {/* Platform Distribution */}
+          <div style={{background: 'linear-gradient(135deg, rgba(7,18,36,0.95) 0%, rgba(5,12,24,0.98) 100%)', border: '1px solid rgba(77,184,255,0.18)', borderTop: '3px solid #4db8ff', borderRadius: '4px', boxShadow: '0 0 20px rgba(77,184,255,0.06), 0 4px 24px rgba(0,0,0,0.4)'}}>
+            <div className="px-5 pt-4 pb-2 flex items-center gap-2">
+              <HardDrive className="h-4 w-4" style={{color: '#4db8ff', filter: 'drop-shadow(0 0 4px rgba(77,184,255,0.7))'}} />
+              <span className="text-sm font-bold tracking-wider" style={{color: '#4db8ff', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.08em'}}>{t('dashboard.platformDistribution')}</span>
+            </div>
+          <div className="px-5 pb-4">
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -523,20 +517,18 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Execution History */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              {t('dashboard.weeklyHistory')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div style={{background: 'linear-gradient(135deg, rgba(10,24,40,0.95) 0%, rgba(7,14,26,0.98) 100%)', border: '1px solid rgba(77,184,255,0.18)', borderLeft: '3px solid #4db8ff', borderRadius: '4px', boxShadow: '0 0 20px rgba(77,184,255,0.06), 0 4px 24px rgba(0,0,0,0.4)'}}>
+          <div className="px-5 pt-4 pb-2 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" style={{color: '#4db8ff', filter: 'drop-shadow(0 0 4px rgba(77,184,255,0.7))'}} />
+            <span className="text-sm font-bold tracking-wider" style={{color: '#4db8ff', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.08em'}}>{t('dashboard.weeklyHistory')}</span>
+          </div>
+          <div className="px-5 pb-4">
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={executionHistory}>
@@ -576,18 +568,16 @@ export default function Home() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Recent Activity */}
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" />
-              {t('dashboard.recentExecutions')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div style={{background: 'linear-gradient(135deg, rgba(10,24,40,0.95) 0%, rgba(7,14,26,0.98) 100%)', border: '1px solid rgba(77,184,255,0.18)', borderLeft: '3px solid #ffcc00', borderRadius: '4px', boxShadow: '0 0 20px rgba(77,184,255,0.06), 0 4px 24px rgba(0,0,0,0.4)'}}>
+          <div className="px-5 pt-4 pb-2 flex items-center gap-2">
+            <Clock className="h-4 w-4" style={{color: '#ffcc00', filter: 'drop-shadow(0 0 4px rgba(255,204,0,0.7))'}} />
+            <span className="text-sm font-bold tracking-wider" style={{color: '#ffcc00', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.08em'}}>{t('dashboard.recentExecutions')}</span>
+          </div>
+          <div className="px-5 pb-4">
             <div className="space-y-3">
               {recentExecutions && recentExecutions.length > 0 ? (
                 recentExecutions.slice(0, 6).map((exec) => (
@@ -648,8 +638,8 @@ export default function Home() {
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Futuristic Banner */}

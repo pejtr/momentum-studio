@@ -220,26 +220,28 @@ function DashboardLayoutContent({
   return (
     <>
       <div className="relative" ref={sidebarRef}>
-        <Sidebar
+          <Sidebar
           collapsible="icon"
           className="border-r-0"
           disableTransition={isResizing}
+          style={{background: '#050b14', borderRight: '1px solid rgba(77,184,255,0.15)', boxShadow: '2px 0 20px rgba(77,184,255,0.06)'}}
         >
-          <SidebarHeader className="h-16 justify-center">
+          <SidebarHeader className="h-16 justify-center" style={{borderBottom: '1px solid rgba(255,153,0,0.25)', background: 'rgba(5,11,20,0.98)'}}>
             <div className="flex items-center gap-3 px-2 transition-all w-full">
               <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                className="h-8 w-8 flex items-center justify-center rounded transition-colors focus:outline-none shrink-0"
+                style={{color: '#4db8ff'}}
                 aria-label="Toggle navigation"
               >
-                <PanelLeft className="h-4 w-4 text-muted-foreground" />
+                <PanelLeft className="h-4 w-4" />
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <Zap className="h-5 w-5 text-primary shrink-0" />
+                  <Zap className="h-5 w-5 shrink-0" style={{color: '#ff9900', filter: 'drop-shadow(0 0 6px rgba(255,153,0,0.8))'}} />
                   <div className="flex flex-col min-w-0">
-                  <span className="font-bold text-sm tracking-tight truncate text-foreground tracking-widest" style={{fontFamily: "'Orbitron', 'Share Tech Mono', monospace"}}>OMNIMATRIX</span>
-                  <span className="text-xs text-muted-foreground truncate font-mono tracking-wider">// QA AUTOMATION CORE</span>
+                    <span className="font-bold text-sm truncate tracking-widest" style={{fontFamily: "'Orbitron', monospace", color: '#ff9900', textShadow: '0 0 10px rgba(255,153,0,0.7), 0 0 24px rgba(255,153,0,0.3)'}}>OMNIMATRIX</span>
+                    <span className="text-xs truncate font-mono tracking-wider" style={{color: '#4db8ff', textShadow: '0 0 6px rgba(77,184,255,0.5)'}}>// QA AUTOMATION CORE</span>
                   </div>
                 </div>
               ) : null}
@@ -256,12 +258,25 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className="h-10 transition-all font-normal"
+                      className="h-9 transition-all"
+                      style={isActive ? {
+                        background: 'rgba(255,153,0,0.12)',
+                        borderLeft: '3px solid #ff9900',
+                        borderRadius: '0 6px 6px 0',
+                        color: '#ff9900',
+                        textShadow: '0 0 8px rgba(255,153,0,0.5)',
+                        boxShadow: 'inset 0 0 12px rgba(255,153,0,0.06)'
+                      } : {
+                        borderLeft: '3px solid transparent',
+                        borderRadius: '0 6px 6px 0',
+                        color: '#99ccff'
+                      }}
                     >
                       <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
+                        className="h-4 w-4"
+                        style={isActive ? {color: '#ff9900', filter: 'drop-shadow(0 0 4px rgba(255,153,0,0.7))'} : {color: '#4db8ff'}}
                       />
-                      <span>{item.label}</span>
+                      <span style={{fontFamily: "'Rajdhani', sans-serif", fontWeight: 500, letterSpacing: '0.04em'}}>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -271,20 +286,20 @@ function DashboardLayoutContent({
 
           <AIAssistant />
 
-          <SidebarFooter className="p-3">
+          <SidebarFooter className="p-3" style={{borderTop: '1px solid rgba(77,184,255,0.15)'}}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <Avatar className="h-9 w-9 border shrink-0">
-                    <AvatarFallback className="text-xs font-medium">
+                <button className="flex items-center gap-3 rounded px-1 py-1 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none" style={{background: 'rgba(77,184,255,0.05)'}}>
+                  <Avatar className="h-9 w-9 shrink-0" style={{border: '1px solid rgba(255,153,0,0.4)', boxShadow: '0 0 8px rgba(255,153,0,0.25)'}}>
+                    <AvatarFallback className="text-xs font-bold" style={{background: 'rgba(255,153,0,0.15)', color: '#ff9900', fontFamily: "'Orbitron', monospace"}}>
                       {user?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                    <p className="text-sm font-medium truncate leading-none">
+                    <p className="text-sm font-semibold truncate leading-none" style={{color: '#ff9900', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.05em'}}>
                       {user?.name || "-"}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate mt-1.5">
+                    <p className="text-xs truncate mt-1" style={{color: '#4db8ff'}}>
                       {user?.email || "-"}
                     </p>
                   </div>
@@ -313,43 +328,56 @@ function DashboardLayoutContent({
       </div>
 
       <SidebarInset>
-        {/* Main top header bar - clean single row */}
-        <div className="flex border-b h-12 items-center bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40 gap-2">
+        {/* LCARS Main top header bar */}
+        <div className="flex h-12 items-center px-3 sticky top-0 z-40 gap-2"
+          style={{
+            background: 'rgba(5,11,20,0.97)',
+            borderBottom: '1px solid rgba(255,153,0,0.25)',
+            boxShadow: '0 2px 20px rgba(0,0,0,0.5), 0 1px 0 rgba(77,184,255,0.08)'
+          }}
+        >
           {/* Mobile: sidebar trigger + page label */}
           {isMobile && (
             <>
-              <SidebarTrigger className="h-8 w-8 rounded-lg bg-background shrink-0" />
-              <span className="text-sm font-medium text-foreground truncate shrink-0 mr-2">
+              <SidebarTrigger className="h-8 w-8 rounded shrink-0" style={{color: '#4db8ff'}} />
+              <span className="text-sm font-semibold truncate shrink-0 mr-2" style={{color: '#ff9900', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.06em'}}>
                 {activeMenuItem?.label ?? "Menu"}
               </span>
             </>
           )}
-          {/* Time (always visible, compact) */}
-          <span className="text-sm font-mono font-semibold tabular-nums shrink-0">
-            {format(currentTime, "HH:mm")}
-          </span>
-          <span className="text-xs text-muted-foreground hidden xl:block shrink-0">
-            {format(currentTime, "EEE d. MMM")}
-          </span>
-          {/* Divider */}
-          <div className="w-px h-5 bg-border shrink-0" />
-          {/* Quick actions */}
+          {/* LCARS time display */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-sm font-mono font-bold tabular-nums" style={{color: '#ffcc00', textShadow: '0 0 8px rgba(255,204,0,0.6)'}}>
+              {format(currentTime, "HH:mm:ss")}
+            </span>
+            <span className="text-xs font-mono hidden xl:block" style={{color: '#4db8ff'}}>
+              {format(currentTime, "EEE dd.MM")}
+            </span>
+          </div>
+          {/* LCARS divider */}
+          <div className="w-px h-5 shrink-0" style={{background: 'rgba(255,153,0,0.3)'}} />
+          {/* Quick actions — LCARS styled */}
           <div className="flex items-center gap-0.5 shrink-0">
-            <Button variant="ghost" size="sm" onClick={() => setMindMapOpen(true)} className="h-8 px-2 gap-1 text-xs">
+            <Button variant="ghost" size="sm" onClick={() => setMindMapOpen(true)} className="h-8 px-2 gap-1 text-xs font-semibold" style={{color: '#4db8ff', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.05em'}}>
               <Network className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">Mind Map</span>
+              <span className="hidden md:inline">MIND MAP</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setCalendarOpen(true)} className="h-8 px-2 gap-1 text-xs">
+            <Button variant="ghost" size="sm" onClick={() => setCalendarOpen(true)} className="h-8 px-2 gap-1 text-xs font-semibold" style={{color: '#4db8ff', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.05em'}}>
               <CalendarIcon className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">Calendar</span>
+              <span className="hidden md:inline">CALENDAR</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setTodoOpen(true)} className="h-8 px-2 gap-1 text-xs">
+            <Button variant="ghost" size="sm" onClick={() => setTodoOpen(true)} className="h-8 px-2 gap-1 text-xs font-semibold" style={{color: '#4db8ff', fontFamily: "'Rajdhani', sans-serif", letterSpacing: '0.05em'}}>
               <CheckSquare className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">To-Do</span>
+              <span className="hidden md:inline">TO-DO</span>
             </Button>
           </div>
           {/* Spacer */}
           <div className="flex-1" />
+          {/* LCARS status indicator */}
+          <div className="hidden lg:flex items-center gap-1.5 px-3 h-6 rounded shrink-0" style={{background: 'rgba(77,184,255,0.08)', border: '1px solid rgba(77,184,255,0.2)'}}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{background: '#4db8ff', boxShadow: '0 0 6px rgba(77,184,255,0.8)'}} />
+            <span className="text-xs font-mono font-bold" style={{color: '#4db8ff', letterSpacing: '0.1em'}}>LCARS ONLINE</span>
+          </div>
           {/* Right: widgets row */}
           <div className="flex items-center gap-0.5 shrink-0">
             <MessagingDropdown />
@@ -359,7 +387,7 @@ function DashboardLayoutContent({
             <NotificationCenter />
           </div>
         </div>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6" style={{background: 'rgba(4,8,16,0.6)'}}>{children}</main>
         <MindMapDialog open={mindMapOpen} onOpenChange={setMindMapOpen} />
       </SidebarInset>
     </>
