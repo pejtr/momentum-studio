@@ -61,4 +61,14 @@ describe("blog input bounds", () => {
       featuredImage: "javascript:alert(1)",
     })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
+
+  it("rejects non-positive and fractional blog resource identifiers before data access", async () => {
+    const caller = appRouter.createCaller(createContext("user"));
+
+    await expect(caller.blog.get({ id: 0 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.blog.comments({ postId: -1 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.blog.addComment({ postId: 1.5, content: "Valid comment." })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+  });
 });

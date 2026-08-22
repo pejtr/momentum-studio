@@ -12,6 +12,7 @@ const blogContentSchema = z.string().trim().min(1).max(100_000);
 const blogExcerptSchema = z.string().trim().max(1_000);
 const blogCommentSchema = z.string().trim().min(1).max(5_000);
 const taxonomyNameSchema = z.string().trim().min(1).max(100);
+const positiveResourceIdSchema = z.number().int().positive();
 const featuredImageUrlSchema = z.string().url().max(500).refine(
   (value) => {
     const protocol = new URL(value).protocol;
@@ -35,10 +36,10 @@ export const blogRouter = router({
   }),
 
   get: publicProcedure.input(z.object({
-    id: z.number(),
+    id: positiveResourceIdSchema,
   })).query(({ input }) => db.getBlogPostById(input.id)),
 
-  getOwn: protectedProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) =>
+  getOwn: protectedProcedure.input(z.object({ id: positiveResourceIdSchema })).query(({ ctx, input }) =>
     db.getBlogPostForAuthor(input.id, ctx.user.id)
   ),
 
@@ -47,7 +48,7 @@ export const blogRouter = router({
   tags: publicProcedure.query(() => db.getBlogTags()),
 
   comments: publicProcedure.input(z.object({
-    postId: z.number(),
+    postId: positiveResourceIdSchema,
   })).query(({ input }) => db.getBlogComments(input.postId)),
 
   // Protected procedures (require authentication)
@@ -69,7 +70,7 @@ export const blogRouter = router({
   }),
 
   update: protectedProcedure.input(z.object({
-    id: z.number(),
+    id: positiveResourceIdSchema,
     title: blogTitleSchema.optional(),
     slug: blogSlugSchema.optional(),
     content: blogContentSchema.optional(),
@@ -85,14 +86,14 @@ export const blogRouter = router({
   }),
 
   delete: protectedProcedure.input(z.object({
-    id: z.number(),
+    id: positiveResourceIdSchema,
   })).mutation(({ ctx, input }) => {
     return db.deleteBlogPost(input.id, ctx.user.id);
   }),
 
   // Comment management
   addComment: protectedProcedure.input(z.object({
-    postId: z.number(),
+    postId: positiveResourceIdSchema,
     content: blogCommentSchema,
   })).mutation(({ ctx, input }) => {
     return db.createBlogComment({
@@ -103,19 +104,19 @@ export const blogRouter = router({
   }),
 
   approveComment: protectedProcedure.input(z.object({
-    id: z.number(),
+    id: positiveResourceIdSchema,
   })).mutation(({ ctx, input }) => {
     return db.updateBlogCommentStatus(input.id, ctx.user.id, "approved");
   }),
 
   rejectComment: protectedProcedure.input(z.object({
-    id: z.number(),
+    id: positiveResourceIdSchema,
   })).mutation(({ ctx, input }) => {
     return db.updateBlogCommentStatus(input.id, ctx.user.id, "rejected");
   }),
 
   deleteComment: protectedProcedure.input(z.object({
-    id: z.number(),
+    id: positiveResourceIdSchema,
   })).mutation(({ ctx, input }) => {
     return db.deleteBlogComment(input.id, ctx.user.id);
   }),

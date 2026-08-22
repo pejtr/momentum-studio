@@ -1040,6 +1040,10 @@
 - [x] Restrict featured image URLs to safe HTTP(S) protocols before persistence
 - [x] Add deterministic regression coverage for rejected unsafe image URL protocols
 
+## Security Hardening: Blog Resource Identifiers
+- [x] Require positive integer blog and comment resource identifiers across public and protected procedures
+- [x] Add deterministic regression coverage for invalid blog resource identifiers
+
 ## Security Hardening: Blog HTML Rendering
 - [x] Sanitize stored blog HTML before browser rendering
 - [x] Preserve safe article formatting while removing executable markup
