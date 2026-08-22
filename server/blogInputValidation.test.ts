@@ -50,4 +50,15 @@ describe("blog input bounds", () => {
       slug: "qa architecture",
     })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
+
+  it("rejects unsafe featured image URL protocols before attempting a write", async () => {
+    const caller = appRouter.createCaller(createContext("user"));
+
+    await expect(caller.blog.create({
+      title: "Safe image URL validation",
+      slug: "safe-image-url-validation",
+      content: "Valid article body.",
+      featuredImage: "javascript:alert(1)",
+    })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 });

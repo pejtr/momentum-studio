@@ -12,6 +12,13 @@ const blogContentSchema = z.string().trim().min(1).max(100_000);
 const blogExcerptSchema = z.string().trim().max(1_000);
 const blogCommentSchema = z.string().trim().min(1).max(5_000);
 const taxonomyNameSchema = z.string().trim().min(1).max(100);
+const featuredImageUrlSchema = z.string().url().max(500).refine(
+  (value) => {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  },
+  "Obrázek článku musí používat bezpečný HTTP(S) protokol."
+);
 
 export const blogRouter = router({
   // Public procedures
@@ -51,7 +58,7 @@ export const blogRouter = router({
     excerpt: blogExcerptSchema.optional(),
     status: z.enum(["draft", "published", "archived"]).optional(),
     publishedAt: z.date().optional(),
-    featuredImage: z.string().url().max(500).optional(),
+    featuredImage: featuredImageUrlSchema.optional(),
     metaDescription: z.string().trim().max(320).optional(),
     keywords: z.string().trim().max(1_000).optional(),
   })).mutation(({ ctx, input }) => {
@@ -69,7 +76,7 @@ export const blogRouter = router({
     excerpt: blogExcerptSchema.optional(),
     status: z.enum(["draft", "published", "archived"]).optional(),
     publishedAt: z.date().optional(),
-    featuredImage: z.string().url().max(500).optional(),
+    featuredImage: featuredImageUrlSchema.optional(),
     metaDescription: z.string().trim().max(320).optional(),
     keywords: z.string().trim().max(1_000).optional(),
   })).mutation(({ ctx, input }) => {

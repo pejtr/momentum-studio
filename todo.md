@@ -1036,6 +1036,10 @@
 - [x] Migrate proxy password storage to a cipher-text-safe column type
 - [x] Add deterministic profile secret encryption regression coverage
 
+## Security Hardening: Blog Image URL Protocols
+- [x] Restrict featured image URLs to safe HTTP(S) protocols before persistence
+- [x] Add deterministic regression coverage for rejected unsafe image URL protocols
+
 ## Security Hardening: Blog HTML Rendering
 - [x] Sanitize stored blog HTML before browser rendering
 - [x] Preserve safe article formatting while removing executable markup
