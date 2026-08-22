@@ -866,6 +866,12 @@
 - [x] Validate script room membership and user identity before collaboration broadcasts
 - [x] Add deterministic tests for room access and user notification isolation
 
+## Security Hardening: Request Size
+- [x] Align JSON payload limit with the 16 MB PDF client limit including base64 expansion
+- [x] Restrict URL-encoded form payloads to a smaller operational limit
+- [x] Return a safe JSON 413 response for oversized API requests
+- [x] Add deterministic tests for oversized-payload error handling
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

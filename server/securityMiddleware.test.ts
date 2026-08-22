@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Request, Response } from "express";
 import { createSlidingWindowRateLimiter } from "./aiRateLimit";
-import { applySecurityHeaders } from "./securityMiddleware";
+import { applySecurityHeaders, handleRequestBodyError } from "./securityMiddleware";
 
 function createResponse() {
   const headers = new Map<string, string>();
@@ -40,6 +40,25 @@ describe("security middleware", () => {
     );
 
     expect(headers.get("Strict-Transport-Security")).toContain("max-age=31536000");
+  });
+
+  it("returns a safe JSON 413 response for an oversized payload", () => {
+    const status = vi.fn().mockReturnThis();
+    const json = vi.fn();
+    let nextCalled = false;
+
+    handleRequestBodyError(
+      Object.assign(new Error("request entity too large"), { type: "entity.too.large" }),
+      {} as Request,
+      { status, json } as unknown as Response,
+      () => { nextCalled = true; }
+    );
+
+    expect(status).toHaveBeenCalledWith(413);
+    expect(json).toHaveBeenCalledWith({
+      error: "Payload je příliš velký. Zmenšete soubor nebo vstupní data a zkuste to znovu.",
+    });
+    expect(nextCalled).toBe(false);
   });
 });
 

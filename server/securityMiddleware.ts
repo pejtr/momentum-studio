@@ -1,5 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 
+export const JSON_BODY_LIMIT = "24mb";
+export const FORM_BODY_LIMIT = "1mb";
+
 export function applySecurityHeaders(req: Request, res: Response, next: NextFunction) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
@@ -30,4 +33,20 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
   }
 
   next();
+}
+
+export function handleRequestBodyError(
+  error: Error & { type?: string },
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (error.type === "entity.too.large") {
+    res.status(413).json({
+      error: "Payload je příliš velký. Zmenšete soubor nebo vstupní data a zkuste to znovu.",
+    });
+    return;
+  }
+
+  next(error);
 }

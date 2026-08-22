@@ -10,7 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { initializeWebSocket } from "./websocket";
 import { sitemapRouter } from "../sitemapRouter";
 import { hermesStreamRouter } from "../hermesStream";
-import { applySecurityHeaders } from "../securityMiddleware";
+import { applySecurityHeaders, FORM_BODY_LIMIT, handleRequestBodyError, JSON_BODY_LIMIT } from "../securityMiddleware";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,9 +37,10 @@ async function startServer() {
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
   app.use(applySecurityHeaders);
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // 16 MB client PDF limit expands to roughly 22 MB when base64 encoded.
+  app.use(express.json({ limit: JSON_BODY_LIMIT }));
+  app.use(express.urlencoded({ limit: FORM_BODY_LIMIT, extended: true }));
+  app.use(handleRequestBodyError);
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // Sitemap
