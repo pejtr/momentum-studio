@@ -860,6 +860,12 @@
 - [x] Return safe throttling responses without spending an AI credit
 - [x] Add deterministic tests for headers and request limiter boundaries
 
+## Security Hardening: Realtime Access
+- [x] Authenticate Socket.IO handshake with the same signed session as HTTP requests
+- [x] Restrict WebSocket origin and bind each socket to an owner-scoped user room
+- [x] Validate script room membership and user identity before collaboration broadcasts
+- [x] Add deterministic tests for room access and user notification isolation
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
