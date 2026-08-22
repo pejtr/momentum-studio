@@ -1,9 +1,16 @@
 import { describe, it, expect } from "vitest";
 import { appRouter } from "./routers";
+import { afterEach, beforeEach } from "vitest";
+import { cleanupTestUserData, TEST_USER_IDS } from "./testDataIsolation";
+
+const TEST_USER_ID = TEST_USER_IDS.blog;
+
+beforeEach(async () => cleanupTestUserData(TEST_USER_ID));
+afterEach(async () => cleanupTestUserData(TEST_USER_ID));
 
 function createAuthContext() {
   const ctx = {
-    user: { id: 1, openId: "test-user", name: "Test User", role: "admin" as const },
+    user: { id: TEST_USER_ID, openId: "omnimatrix-test-blog", name: "Test User", role: "admin" as const },
     req: {} as any,
     res: {} as any,
   };

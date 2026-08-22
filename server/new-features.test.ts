@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+import { afterEach, beforeEach } from "vitest";
+import { cleanupTestUserData, TEST_USER_IDS } from "./testDataIsolation";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
+const TEST_USER_ID = TEST_USER_IDS.newFeatures;
+
+beforeEach(async () => cleanupTestUserData(TEST_USER_ID));
+afterEach(async () => cleanupTestUserData(TEST_USER_ID));
+
 function createAuthContext(): { ctx: TrpcContext } {
   const user: AuthenticatedUser = {
-    id: 1,
-    openId: "test-user",
+    id: TEST_USER_ID,
+    openId: "omnimatrix-test-new-features",
     email: "test@example.com",
     name: "Test User",
     loginMethod: "manus",
