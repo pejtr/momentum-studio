@@ -975,6 +975,11 @@
 - [x] Refresh credit status after successful workflow generation
 - [x] Verify the workflow generation response retains the updated credit status
 
+## Security Hardening: Engagement Input Bounds
+- [x] Replace unbounded campaign update criteria and action configuration payloads
+- [x] Align campaign create and update inputs with field-level limits
+- [x] Add deterministic engagement validation-boundary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

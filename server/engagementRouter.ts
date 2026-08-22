@@ -15,6 +15,30 @@ async function requireAiCredit(userId: number, tool: AiCreditTool) {
   return consumption.status;
 }
 
+const engagementTargetCriteriaSchema = z.object({
+  hashtags: z.array(z.string().trim().min(1).max(100)).max(30).optional(),
+  keywords: z.array(z.string().trim().min(1).max(100)).max(30).optional(),
+  accounts: z.array(z.string().trim().min(1).max(100)).max(30).optional(),
+  minLikes: z.number().int().min(0).max(1_000_000_000).optional(),
+  maxLikes: z.number().int().min(0).max(1_000_000_000).optional(),
+}).strict().superRefine((criteria, validation) => {
+  if (criteria.minLikes !== undefined && criteria.maxLikes !== undefined && criteria.minLikes > criteria.maxLikes) {
+    validation.addIssue({
+      code: "custom",
+      path: ["maxLikes"],
+      message: "Maximální počet likes musí být alespoň minimální počet likes.",
+    });
+  }
+});
+
+const engagementActionConfigSchema = z.object({
+  useAI: z.boolean().optional(),
+  commentTemplates: z.array(z.string().trim().min(1).max(5_000)).max(20).optional(),
+  dmTemplates: z.array(z.string().trim().min(1).max(5_000)).max(20).optional(),
+  maxActionsPerDay: z.number().int().min(1).max(10_000).optional(),
+  delayBetweenActions: z.number().int().min(0).max(86_400).optional(),
+}).strict();
+
 export const engagementRouter = router({
   // ========== Engagement Campaigns ==========
   campaigns: router({
@@ -30,21 +54,9 @@ export const engagementRouter = router({
         name: z.string().min(1).max(255),
         platform: z.enum(['instagram', 'tiktok', 'facebook', 'youtube', 'twitter']),
         type: z.enum(['like', 'comment', 'follow', 'view_story', 'send_dm', 'hashtag_monitor']),
-        targetCriteria: z.object({
-          hashtags: z.array(z.string()).optional(),
-          keywords: z.array(z.string()).optional(),
-          accounts: z.array(z.string()).optional(),
-          minLikes: z.number().optional(),
-          maxLikes: z.number().optional(),
-        }).optional(),
-        actionConfig: z.object({
-          useAI: z.boolean().optional(),
-          commentTemplates: z.array(z.string()).optional(),
-          dmTemplates: z.array(z.string()).optional(),
-          maxActionsPerDay: z.number().optional(),
-          delayBetweenActions: z.number().optional(),
-        }).optional(),
-        actionsTarget: z.number().optional(),
+        targetCriteria: engagementTargetCriteriaSchema.optional(),
+        actionConfig: engagementActionConfigSchema.optional(),
+        actionsTarget: z.number().int().min(1).max(1_000_000).optional(),
       }))
       .mutation(({ ctx, input }) => 
         db.createEngagementCampaign({ ...input, userId: ctx.user.id })
@@ -52,12 +64,12 @@ export const engagementRouter = router({
     
     update: protectedProcedure
       .input(z.object({
-        id: z.number(),
-        name: z.string().optional(),
+        id: z.number().int().positive(),
+        name: z.string().trim().min(1).max(255).optional(),
         status: z.enum(['active', 'paused', 'completed', 'error']).optional(),
-        targetCriteria: z.any().optional(),
-        actionConfig: z.any().optional(),
-        actionsTarget: z.number().optional(),
+        targetCriteria: engagementTargetCriteriaSchema.optional(),
+        actionConfig: engagementActionConfigSchema.optional(),
+        actionsTarget: z.number().int().min(1).max(1_000_000).optional(),
       }))
       .mutation(({ ctx, input }) => {
         const { id, ...data } = input;
