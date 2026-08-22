@@ -905,6 +905,11 @@
 - [x] Verify that an admin caller can invoke the guarded operation without role leakage
 - [x] Add deterministic regression coverage for admin guard behavior
 
+## Security Hardening: Pagination Bounds
+- [x] Add maximum list limits to executions, marketplace, engagement history and AI conversation inputs
+- [x] Clamp database list helpers defensively even when called outside tRPC
+- [x] Add regression tests for rejected oversized limits and normal list responses
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

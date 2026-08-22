@@ -22,6 +22,11 @@ import {
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+export const MAX_LIST_QUERY_LIMIT = 100;
+
+function boundedListLimit(limit: number): number {
+  return Math.min(Math.max(1, Math.floor(limit)), MAX_LIST_QUERY_LIMIT);
+}
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
@@ -137,7 +142,7 @@ export async function deleteProfile(id: number, userId: number) {
 export async function getExecutionsByUser(userId: number, limit = 50) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(executions).where(eq(executions.userId, userId)).orderBy(desc(executions.createdAt)).limit(limit);
+  return db.select().from(executions).where(eq(executions.userId, userId)).orderBy(desc(executions.createdAt)).limit(boundedListLimit(limit));
 }
 
 export async function createExecution(data: InsertExecution) {
@@ -327,7 +332,7 @@ export async function getMarketplaceTemplates(filters?: {
   return db.select().from(marketplaceTemplates)
     .where(and(...conditions))
     .orderBy(orderByClause)
-    .limit(filters?.limit || 50);
+    .limit(boundedListLimit(filters?.limit ?? 50));
 }
 
 export async function getPublishedMarketplaceTemplateById(id: number) {
@@ -631,7 +636,7 @@ export async function deleteHashtagMonitor(id: number) {
 export async function getAICommentHistory(userId: number, limit: number = 50) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(aiCommentHistory).where(eq(aiCommentHistory.userId, userId)).orderBy(desc(aiCommentHistory.createdAt)).limit(limit);
+  return db.select().from(aiCommentHistory).where(eq(aiCommentHistory.userId, userId)).orderBy(desc(aiCommentHistory.createdAt)).limit(boundedListLimit(limit));
 }
 
 export async function createAICommentHistory(data: InsertAICommentHistory) {
@@ -652,7 +657,7 @@ export async function updateAICommentFeedback(id: number, feedback: string) {
 export async function getAIConversationHistory(userId: number, limit: number = 50) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(aiConversations).where(eq(aiConversations.userId, userId)).orderBy(aiConversations.createdAt).limit(limit);
+  return db.select().from(aiConversations).where(eq(aiConversations.userId, userId)).orderBy(aiConversations.createdAt).limit(boundedListLimit(limit));
 }
 
 export async function createAIConversation(data: InsertAIConversation) {

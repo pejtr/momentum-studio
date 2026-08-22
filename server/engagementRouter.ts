@@ -193,7 +193,7 @@ Rules:
       }),
 
     commentHistory: protectedProcedure
-      .input(z.object({ limit: z.number().optional() }))
+      .input(z.object({ limit: z.number().int().min(1).max(100).optional() }))
       .query(({ ctx, input }) => 
         db.getAICommentHistory(ctx.user.id, input.limit)
       ),

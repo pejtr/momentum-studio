@@ -117,7 +117,7 @@ export const appRouter = router({
 
   // Executions
   executions: router({
-    list: protectedProcedure.input(z.object({ limit: z.number().optional() }).optional()).query(({ ctx, input }) => db.getExecutionsByUser(ctx.user.id, input?.limit)),
+    list: protectedProcedure.input(z.object({ limit: z.number().int().min(1).max(100).optional() }).optional()).query(({ ctx, input }) => db.getExecutionsByUser(ctx.user.id, input?.limit)),
     create: protectedProcedure.input(z.object({
       scriptId: z.number(),
       profileId: z.number().optional(),
@@ -217,7 +217,7 @@ export const appRouter = router({
     list: publicProcedure.input(z.object({
       category: z.string().optional(),
       platform: z.string().optional(),
-      limit: z.number().optional(),
+      limit: z.number().int().min(1).max(100).optional(),
       sortBy: z.enum(["downloads", "rating", "recent", "price"]).optional(),
       minRating: z.number().min(1).max(5).optional(),
     }).optional()).query(({ input }) => db.getMarketplaceTemplates(input)),
@@ -504,7 +504,7 @@ export const appRouter = router({
     }),
     
     getHistory: protectedProcedure.input(z.object({
-      limit: z.number().optional(),
+      limit: z.number().int().min(1).max(100).optional(),
     })).query(({ ctx, input }) => 
       db.getAIConversationHistory(ctx.user.id, input.limit)
     ),
