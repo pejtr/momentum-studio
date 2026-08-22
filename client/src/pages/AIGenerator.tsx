@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { AICreditStatus } from "@/components/AICreditStatus";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
@@ -22,6 +23,7 @@ export default function AIGenerator() {
   const [prompt, setPrompt] = useState("");
   const [conversation, setConversation] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const [generatedWorkflow, setGeneratedWorkflow] = useState<any>(null);
+  const utils = trpc.useUtils();
 
   const generateMutation = trpc.ai.generateWorkflow.useMutation({
     onSuccess: (data) => {
@@ -30,6 +32,7 @@ export default function AIGenerator() {
         { role: "assistant", content: data.explanation },
       ]);
       setGeneratedWorkflow(data.workflow);
+      utils.ai.credits.invalidate();
       toast.success("Workflow generated successfully!");
     },
     onError: (error) => {
@@ -78,10 +81,13 @@ export default function AIGenerator() {
             </p>
           </div>
         </div>
-        <Badge variant="outline" className="gap-1.5">
-          <Sparkles className="h-3 w-3" />
-          AI-Powered
-        </Badge>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <AICreditStatus />
+          <Badge variant="outline" className="gap-1.5">
+            <Sparkles className="h-3 w-3" />
+            AI-Powered
+          </Badge>
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden flex">

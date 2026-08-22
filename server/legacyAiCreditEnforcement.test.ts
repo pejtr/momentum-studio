@@ -84,9 +84,10 @@ describe("legacy AI credit enforcement", () => {
     const caller = appRouter.createCaller(createContext());
 
     await caller.ai.chat({ messages: [{ role: "user", content: "Create a smoke test plan." }] });
-    await caller.ai.generateWorkflow({ prompt: "Open the login page and verify the heading." });
+    const workflow = await caller.ai.generateWorkflow({ prompt: "Open the login page and verify the heading." });
     await caller.engagement.ai.generateComment({ platform: "instagram", postContent: "A release update for our QA platform." });
 
+    expect(workflow.credits).toEqual(allowedStatus);
     expect(mocks.consumeAiCredit).toHaveBeenNthCalledWith(1, 990015, "ai_chat");
     expect(mocks.consumeAiCredit).toHaveBeenNthCalledWith(2, 990015, "workflow_generation");
     expect(mocks.consumeAiCredit).toHaveBeenNthCalledWith(3, 990015, "engagement_comment");

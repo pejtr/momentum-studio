@@ -970,6 +970,11 @@
 - [x] Cap aggregate workflow prompt and conversation context before credit reservation
 - [x] Add deterministic aggregate-size regression coverage
 
+## Monetization UX: Legacy Workflow Generator
+- [x] Show shared AI credit status in the workflow generator header
+- [x] Refresh credit status after successful workflow generation
+- [x] Verify the workflow generation response retains the updated credit status
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
