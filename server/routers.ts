@@ -14,6 +14,7 @@ import { engagementRouter } from "./engagementRouter";
 import { hermesRouter } from "./routers/hermes";
 import { consumeAiCredit, getAiCreditStatus, type AiCreditTool } from "./aiCredits";
 import { generateTestCasesWithHermes, summarizePdfWithHermes, validateXmlWithHermes } from "./hermesQaTools";
+import { decryptProfileSecrets, encryptProfileSecrets } from "./profileSecrets";
 
 async function requireAiCredit(userId: number, tool: AiCreditTool) {
   const consumption = await consumeAiCredit(userId, tool);
@@ -144,7 +145,13 @@ export const appRouter = router({
       proxyPassword: proxyCredentialSchema.optional(),
       userAgent: userAgentSchema.optional(),
       credentials: profileCredentialsSchema.optional(),
-    })).mutation(({ ctx, input }) => db.createProfile({ ...input, userId: ctx.user.id, credentials: input.credentials as Record<string, string> | undefined })),
+    })).mutation(({ ctx, input }) => {
+      const protectedInput = encryptProfileSecrets({
+        ...input,
+        credentials: input.credentials as Record<string, string> | undefined,
+      });
+      return db.createProfile({ ...protectedInput, userId: ctx.user.id });
+    }),
     update: protectedProcedure.input(z.object({
       id: z.number(),
       name: profileNameSchema.optional(),
@@ -158,7 +165,7 @@ export const appRouter = router({
       status: z.enum(["active", "inactive", "banned", "warming"]).optional(),
     })).mutation(({ ctx, input }) => {
       const { id, ...data } = input;
-      return db.updateProfile(id, ctx.user.id, data as any);
+      return db.updateProfile(id, ctx.user.id, encryptProfileSecrets(data) as any);
     }),
     delete: protectedProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => db.deleteProfile(input.id, ctx.user.id)),
   }),
@@ -357,7 +364,8 @@ export const appRouter = router({
       const script = await db.getScriptById(input.scriptId, ctx.user.id);
       if (!script) throw new Error('Script not found');
 
-      const profile = input.profileId ? await db.getProfileById(input.profileId, ctx.user.id) : null;
+      const storedProfile = input.profileId ? await db.getProfileById(input.profileId, ctx.user.id) : null;
+      const profile = storedProfile ? decryptProfileSecrets(storedProfile) : null;
 
       // Convert workflow nodes to execution steps
       const steps = (script.nodes as any[]).map(node => ({

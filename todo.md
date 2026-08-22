@@ -1030,6 +1030,12 @@
 - [x] Preserve server-side access to secrets for owner-scoped execution only
 - [x] Add deterministic regression coverage for profile secret redaction
 
+## Security Hardening: Profile Secret Storage
+- [x] Encrypt new proxy passwords and credential-map values before database writes
+- [x] Preserve legacy plaintext compatibility and decrypt only for server-side execution
+- [x] Migrate proxy password storage to a cipher-text-safe column type
+- [x] Add deterministic profile secret encryption regression coverage
+
 ## Security Hardening: Blog HTML Rendering
 - [x] Sanitize stored blog HTML before browser rendering
 - [x] Preserve safe article formatting while removing executable markup

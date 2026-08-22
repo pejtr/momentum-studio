@@ -40,7 +40,7 @@ export const profiles = mysqlTable("profiles", {
   proxyHost: varchar("proxyHost", { length: 255 }),
   proxyPort: int("proxyPort"),
   proxyUsername: varchar("proxyUsername", { length: 255 }),
-  proxyPassword: varchar("proxyPassword", { length: 255 }),
+  proxyPassword: text("proxyPassword"),
   userAgent: text("userAgent"),
   credentials: json("credentials").$type<Record<string, string>>(),
   status: mysqlEnum("status", ["active", "inactive", "banned", "warming"]).default("active").notNull(),
