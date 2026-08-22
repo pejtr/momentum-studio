@@ -1,6 +1,7 @@
 import { and, eq, lt, sql } from "drizzle-orm";
 import { aiCreditAccounts, aiCreditUsage } from "../drizzle/schema";
 import { getDb } from "./db";
+import { aiRequestRateLimiter } from "./aiRateLimit";
 
 export const AI_CREDIT_TOOLS = [
   "hermes",
@@ -95,7 +96,7 @@ export async function getAiCreditStatus(userId: number): Promise<AiCreditStatus>
 
 export type AiCreditConsumption =
   | { allowed: true; status: AiCreditStatus }
-  | { allowed: false; status: AiCreditStatus };
+  | { allowed: false; status: AiCreditStatus; reason: "exhausted" | "rate_limited"; retryAfterSeconds?: number };
 
 /**
  * Reserves one server-owned credit before an AI request. The conditional update
@@ -106,6 +107,15 @@ export async function consumeAiCredit(
   tool: AiCreditTool
 ): Promise<AiCreditConsumption> {
   const { db, account } = await getCurrentAccount(userId);
+  const rateLimit = aiRequestRateLimiter.check(String(userId));
+  if (!rateLimit.allowed) {
+    return {
+      allowed: false,
+      status: toStatus(account),
+      reason: "rate_limited",
+      retryAfterSeconds: rateLimit.retryAfterSeconds,
+    };
+  }
   const updateResult = await db
     .update(aiCreditAccounts)
     .set({ usedCredits: sql`${aiCreditAccounts.usedCredits} + 1` })
@@ -126,7 +136,7 @@ export async function consumeAiCredit(
   const status = toStatus(updated[0]);
   const affectedRows = Number(updateResult[0]?.affectedRows ?? 0);
 
-  if (affectedRows !== 1) return { allowed: false, status };
+  if (affectedRows !== 1) return { allowed: false, status, reason: "exhausted" };
 
   try {
     await db.insert(aiCreditUsage).values({

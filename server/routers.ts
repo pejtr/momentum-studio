@@ -18,9 +18,12 @@ import { generateTestCasesWithHermes, summarizePdfWithHermes, validateXmlWithHer
 async function requireAiCredit(userId: number, tool: AiCreditTool) {
   const consumption = await consumeAiCredit(userId, tool);
   if (!consumption.allowed) {
+    const message = consumption.reason === "rate_limited"
+      ? `Příliš mnoho AI požadavků. Zkuste to znovu za ${consumption.retryAfterSeconds ?? 1} s.`
+      : "Měsíční limit AI kreditů byl vyčerpán. Další kredity budou dostupné při příštím obnovení období.";
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
-      message: "Měsíční limit AI kreditů byl vyčerpán. Další kredity budou dostupné při příštím obnovení období.",
+      message,
     });
   }
   return consumption.status;

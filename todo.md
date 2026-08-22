@@ -854,6 +854,12 @@
 - [ ] Prevent path traversal attacks
 - [ ] Add security audit tests
 
+## Security Hardening: AI Perimeter
+- [x] Remove technology disclosure and add compatible security response headers
+- [x] Add a bounded per-user sliding-window limiter before AI credit consumption
+- [x] Return safe throttling responses without spending an AI credit
+- [x] Add deterministic tests for headers and request limiter boundaries
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

@@ -66,8 +66,11 @@ hermesStreamRouter.post("/api/hermes/stream", async (req: Request, res: Response
   try {
     const consumption = await consumeAiCredit(userId, "hermes");
     if (!consumption.allowed) {
+      const error = consumption.reason === "rate_limited"
+        ? `Příliš mnoho AI požadavků. Zkuste to znovu za ${consumption.retryAfterSeconds ?? 1} s.`
+        : "Měsíční limit AI kreditů byl vyčerpán. Další kredity budou dostupné při příštím obnovení období.";
       res.status(429).json({
-        error: "Měsíční limit AI kreditů byl vyčerpán. Další kredity budou dostupné při příštím obnovení období.",
+        error,
         credits: consumption.status,
       });
       return;
