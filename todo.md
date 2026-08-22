@@ -1051,6 +1051,10 @@
 ## Build Quality: Global CSS Imports
 - [x] Place external font imports before framework imports to remove production CSS ordering warnings
 
+## Security Hardening: Sitemap XML Output
+- [x] Validate the request host and escape sitemap URL values before XML rendering
+- [x] Add deterministic regression coverage for malformed hosts and XML metacharacters
+
 ## Security Hardening: Blog HTML Rendering
 - [x] Sanitize stored blog HTML before browser rendering
 - [x] Preserve safe article formatting while removing executable markup
