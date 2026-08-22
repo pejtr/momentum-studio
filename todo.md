@@ -1020,6 +1020,11 @@
 - [x] Bound container host, port, name and lifecycle resource identifiers
 - [x] Add deterministic operational validation-boundary regression coverage
 
+## Security Hardening: AI File Input Bounds
+- [x] Bound PDF filename and base64 payload before credit reservation
+- [x] Bound optional XSD payload consistently with XML content
+- [x] Add deterministic AI file payload-limit regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

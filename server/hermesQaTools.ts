@@ -18,7 +18,7 @@ const xmlInputSchema = z.object({
 
 const pdfInputSchema = z.object({
   filename: z.string().min(1).max(255),
-  fileBase64: z.string().min(1),
+  fileBase64: z.string().min(1).max(22_500_000),
 });
 
 export async function generateTestCasesWithHermes(input: unknown) {

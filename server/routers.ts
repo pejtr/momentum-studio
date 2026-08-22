@@ -657,8 +657,8 @@ Example:
     // PDF Summarizer for QA documentation
     summarizePDF: protectedProcedure
       .input(z.object({
-        filename: z.string(),
-        fileBase64: z.string(),
+        filename: z.string().trim().min(1).max(255),
+        fileBase64: z.string().min(1).max(22_500_000),
       }))
       .mutation(async ({ ctx, input }) => {
         const credits = await requireAiCredit(ctx.user.id, "pdf_summary");
@@ -683,7 +683,7 @@ Example:
     validateXML: protectedProcedure
       .input(z.object({
         xmlContent: z.string().min(1).max(100000),
-        xsdContent: z.string().optional(),
+        xsdContent: z.string().max(100000).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const credits = await requireAiCredit(ctx.user.id, "xml_validation");
