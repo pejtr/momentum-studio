@@ -44,6 +44,8 @@ const scriptEdgeSchema = z.object({
   type: z.string().optional(),
 });
 
+const MAX_LEGACY_AI_INPUT_CHARS = 50_000;
+
 export const appRouter = router({
   system: systemRouter,
   blog: blogRouter,
@@ -436,6 +438,15 @@ export const appRouter = router({
       systemPrompt: z.string().max(5_000).optional(),
       persona: z.enum(['marketing', 'technical', 'general']).optional(),
       saveToHistory: z.boolean().optional(),
+    }).superRefine((input, validation) => {
+      const totalChars = (input.systemPrompt?.length ?? 0)
+        + input.messages.reduce((total, message) => total + message.content.length, 0);
+      if (totalChars > MAX_LEGACY_AI_INPUT_CHARS) {
+        validation.addIssue({
+          code: "custom",
+          message: `Celkový AI chat kontext nesmí překročit ${MAX_LEGACY_AI_INPUT_CHARS} znaků.`,
+        });
+      }
     })).mutation(async ({ ctx, input }) => {
       const { invokeLLM } = await import('./_core/llm');
 
@@ -519,6 +530,15 @@ export const appRouter = router({
         role: z.enum(['user', 'assistant']),
         content: z.string().min(1).max(5_000),
       })).max(20).optional(),
+    }).superRefine((input, validation) => {
+      const totalChars = input.prompt.length
+        + (input.conversationHistory?.reduce((total, message) => total + message.content.length, 0) ?? 0);
+      if (totalChars > MAX_LEGACY_AI_INPUT_CHARS) {
+        validation.addIssue({
+          code: "custom",
+          message: `Celkový AI workflow kontext nesmí překročit ${MAX_LEGACY_AI_INPUT_CHARS} znaků.`,
+        });
+      }
     })).mutation(async ({ ctx, input }) => {
       const { invokeLLM } = await import('./_core/llm');
 

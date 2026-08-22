@@ -965,6 +965,11 @@
 - [x] Bound persistent-memory listing and validate memory identifiers
 - [x] Add deterministic query-bound regression coverage
 
+## Security Hardening: Aggregate AI Input Bounds
+- [x] Cap aggregate multi-message chat context before credit reservation
+- [x] Cap aggregate workflow prompt and conversation context before credit reservation
+- [x] Add deterministic aggregate-size regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

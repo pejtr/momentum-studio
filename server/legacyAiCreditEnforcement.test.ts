@@ -102,4 +102,17 @@ describe("legacy AI credit enforcement", () => {
     expect(mocks.consumeAiCredit).not.toHaveBeenCalled();
     expect(mocks.invokeLLM).not.toHaveBeenCalled();
   });
+
+  it("rejects oversized aggregate chat and workflow context before reserving a credit", async () => {
+    const caller = appRouter.createCaller(createContext());
+    const chatMessages = Array.from({ length: 6 }, () => ({ role: "user" as const, content: "x".repeat(10_000) }));
+    const workflowHistory = Array.from({ length: 10 }, () => ({ role: "user" as const, content: "x".repeat(5_000) }));
+
+    await expect(caller.ai.chat({ messages: chatMessages })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.ai.generateWorkflow({ prompt: "Valid workflow request", conversationHistory: workflowHistory })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+    expect(mocks.consumeAiCredit).not.toHaveBeenCalled();
+    expect(mocks.invokeLLM).not.toHaveBeenCalled();
+  });
 });
