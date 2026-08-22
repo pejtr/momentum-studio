@@ -25,47 +25,47 @@ interface OnboardingStep {
 const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: "welcome",
-    title: "Welcome to QA Automation - AI ToolKit",
+    title: "Vítejte v OMNIMATRIX",
     description:
-      "Your ultimate automation engine cross-platform. Let's get you started with a quick tour of the key features.",
+      "Váš QA automation cockpit je připraven. Projděte si v několika krocích klíčové možnosti systému, nebo prohlídku kdykoli přeskočte.",
     icon: Settings,
-    action: "Get Started",
+    action: "Zahájit prohlídku",
     path: "/",
   },
   {
     id: "script",
-    title: "Create Your First Script",
+    title: "Vytvořte první skript",
     description:
-      "Build powerful automation workflows with our visual drag-and-drop editor. No coding required!",
+      "Sestavte automatizační workflow pomocí vizuálního editoru metodou drag-and-drop. Bez nutnosti psát kód.",
     icon: Workflow,
-    action: "Create Script",
+    action: "Vytvořit skript",
     path: "/scripts",
   },
   {
     id: "profile",
-    title: "Configure a Profile",
+    title: "Nastavte profil",
     description:
-      "Set up multi-account profiles with proxy support for managing multiple identities and running parallel automations.",
+      "Vytvořte profily s podporou proxy pro správu identit a paralelní spouštění automatizací.",
     icon: Users,
-    action: "Add Profile",
+    action: "Přidat profil",
     path: "/profiles",
   },
   {
     id: "marketplace",
-    title: "Explore the Marketplace",
+    title: "Prozkoumejte tržiště",
     description:
-      "Discover and share automation templates with the community. Publish your own workflows and earn from your creations.",
+      "Objevujte a sdílejte automatizační šablony. Publikujte vlastní workflow a budujte vlastní katalog.",
     icon: Store,
-    action: "Browse Templates",
+    action: "Procházet šablony",
     path: "/marketplace",
   },
   {
     id: "complete",
-    title: "You're All Set!",
+    title: "Připraveno k práci",
     description:
-      "You've completed the onboarding tour. Start building amazing automations and unlock the full power of your system.",
+      "Základní orientaci máte za sebou. Začněte vytvářet, spouštět a vyhodnocovat QA automatizace.",
     icon: CheckCircle2,
-    action: "Start Building",
+    action: "Otevřít dashboard",
     path: "/",
   },
 ];
@@ -76,7 +76,6 @@ export function Onboarding() {
   const [, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
     // Check if onboarding has been completed
@@ -110,7 +109,6 @@ export function Onboarding() {
 
   const handleComplete = () => {
     localStorage.setItem(ONBOARDING_KEY, "true");
-    setCompleted(true);
     setIsOpen(false);
   };
 
@@ -122,40 +120,46 @@ export function Onboarding() {
   const StepIcon = step.icon;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-2xl border-border">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (open) setIsOpen(true);
+        else handleComplete();
+      }}
+    >
+      <DialogContent className="max-w-2xl lcars-panel border-0 rounded-md text-[#d8efff]">
         <DialogTitle className="sr-only">{step.title}</DialogTitle>
         <button
           onClick={handleSkip}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+          className="absolute right-4 top-4 rounded-sm text-[#8bcaff] transition-opacity hover:text-[#ff9900] focus:outline-none focus:ring-2 focus:ring-[#ff9900]"
         >
           <X className="h-4 w-4" />
-          <span className="sr-only">Skip</span>
+          <span className="sr-only">Přeskočit vše</span>
         </button>
 
         <div className="space-y-6 pt-6">
           {/* Progress */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center justify-between text-xs text-[#8bcaff] font-medium tracking-wide">
               <span>
-                Step {currentStep + 1} of {ONBOARDING_STEPS.length}
+                Krok {currentStep + 1} z {ONBOARDING_STEPS.length}
               </span>
-              <span>{Math.round(progress)}% complete</span>
+              <span>{Math.round(progress)} % dokončeno</span>
             </div>
-            <Progress value={progress} className="h-1.5" />
+            <Progress value={progress} className="h-1.5 [&>div]:bg-[#ff9900]" />
           </div>
 
           {/* Icon */}
           <div className="flex justify-center">
-            <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <StepIcon className={`h-10 w-10 text-primary ${step.id === 'welcome' ? 'animate-spin-slow' : ''}`} />
+            <div className="h-20 w-20 rounded-md flex items-center justify-center" style={{background: 'rgba(255,153,0,0.1)', border: '1px solid rgba(255,153,0,0.35)', boxShadow: '0 0 18px rgba(255,153,0,0.18)'}}>
+              <StepIcon className={`h-10 w-10 text-[#ff9900] ${step.id === 'welcome' ? 'animate-spin-slow' : ''}`} />
             </div>
           </div>
 
           {/* Content */}
           <div className="text-center space-y-3">
-            <h2 className="text-2xl font-bold text-foreground">{step.title}</h2>
-            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+            <h2 className="text-2xl font-bold lcars-text">{step.title}</h2>
+            <p className="text-[#b8dfff] max-w-md mx-auto leading-relaxed">
               {step.description}
             </p>
           </div>
@@ -164,16 +168,16 @@ export function Onboarding() {
           {step.id === "script" && (
             <div className="grid grid-cols-3 gap-3 pt-2">
               <div className="bg-secondary/50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-primary">10+</div>
-                <div className="text-xs text-muted-foreground mt-1">Action Types</div>
+                <div className="text-2xl font-bold text-[#ff9900]">10+</div>
+                <div className="text-xs text-[#8bcaff] mt-1">Typů akcí</div>
               </div>
               <div className="bg-secondary/50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-chart-2">Real-time</div>
-                <div className="text-xs text-muted-foreground mt-1">Collaboration</div>
+                <div className="text-2xl font-bold text-[#4db8ff]">Live</div>
+                <div className="text-xs text-[#8bcaff] mt-1">Spolupráce</div>
               </div>
               <div className="bg-secondary/50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-chart-3">Export</div>
-                <div className="text-xs text-muted-foreground mt-1">to Code</div>
+                <div className="text-2xl font-bold text-[#ffcc00]">Export</div>
+                <div className="text-xs text-[#8bcaff] mt-1">Do kódu</div>
               </div>
             </div>
           )}
@@ -181,14 +185,14 @@ export function Onboarding() {
           {step.id === "profile" && (
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div className="bg-secondary/50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-primary">Multi-Account</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Manage unlimited profiles
+                <div className="text-2xl font-bold text-[#ff9900]">Multi-účet</div>
+                <div className="text-xs text-[#8bcaff] mt-1">
+                  Správa profilů
                 </div>
               </div>
               <div className="bg-secondary/50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-chart-2">Proxy Support</div>
-                <div className="text-xs text-muted-foreground mt-1">
+                <div className="text-2xl font-bold text-[#4db8ff]">Proxy</div>
+                <div className="text-xs text-[#8bcaff] mt-1">
                   SOCKS5, HTTP, HTTPS
                 </div>
               </div>
@@ -199,33 +203,31 @@ export function Onboarding() {
             <div className="grid grid-cols-3 gap-3 pt-2">
               <div className="bg-secondary/50 rounded-lg p-3 text-center">
                 <div className="text-2xl font-bold text-primary">100+</div>
-                <div className="text-xs text-muted-foreground mt-1">Templates</div>
+                <div className="text-xs text-[#8bcaff] mt-1">Šablon</div>
               </div>
               <div className="bg-secondary/50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-chart-2">Earn</div>
-                <div className="text-xs text-muted-foreground mt-1">From Sales</div>
+                <div className="text-2xl font-bold text-[#4db8ff]">Publikujte</div>
+                <div className="text-xs text-[#8bcaff] mt-1">Vlastní workflow</div>
               </div>
               <div className="bg-secondary/50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-chart-3">5★</div>
-                <div className="text-xs text-muted-foreground mt-1">Rated Content</div>
+                <div className="text-2xl font-bold text-[#ffcc00]">QA</div>
+                <div className="text-xs text-[#8bcaff] mt-1">Automatizace</div>
               </div>
             </div>
           )}
 
           {/* Actions */}
           <div className="flex items-center gap-3 pt-4">
-            {currentStep > 0 && currentStep < ONBOARDING_STEPS.length - 1 && (
-              <Button
-                variant="outline"
-                onClick={handleSkip}
-                className="flex-1"
-              >
-                Skip Tour
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={handleSkip}
+              className="flex-1 border-[#4db8ff]/40 text-[#8bcaff] hover:bg-[#4db8ff]/10 hover:text-[#d8efff]"
+            >
+              Přeskočit vše
+            </Button>
             <Button
               onClick={handleNext}
-              className="flex-1"
+              className="lcars-button flex-1"
             >
               {step.action}
               {currentStep < ONBOARDING_STEPS.length - 1 && (

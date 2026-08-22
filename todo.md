@@ -975,6 +975,6 @@
 
 ## Nálezy z atomického testování
 - [x] Sjednoť LCARS Neon Glow vizuální systém pro HERMES a tři AI nástroje; aktuálně používají starší zelený terminálový styl
-- [ ] Lokalizuj onboarding do češtiny a přidej jednoznačné tlačítko „Přeskočit vše“, aby neblokoval první práci s dashboardem
+- [x] Lokalizuj onboarding do češtiny a přidej jednoznačné tlačítko „Přeskočit vše“, aby neblokoval první práci s dashboardem
 - [ ] Izoluj automatizované testy od produkčních dat pomocí testovací databáze nebo řízeného cleanupu
 - [ ] Oprav nebo potlač neplatné preview analytics volání, které vrací HTTP 400 „Website not found“
