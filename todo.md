@@ -985,6 +985,11 @@
 - [x] Validate bounded credential maps before sensitive profile writes
 - [x] Add deterministic profile validation-boundary regression coverage
 
+## Security Hardening: Script Graph Input Bounds
+- [x] Bound graph node, edge and metadata payload sizes
+- [x] Cap graph node and edge counts on script create and update
+- [x] Add deterministic script graph validation-boundary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

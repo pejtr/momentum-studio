@@ -29,20 +29,40 @@ async function requireAiCredit(userId: number, tool: AiCreditTool) {
   return consumption.status;
 }
 
+const scriptNodeDataSchema = z.record(z.string().trim().min(1).max(100), z.unknown())
+  .refine((data) => Object.keys(data).length <= 50, {
+    message: "Data uzlu mohou obsahovat nejvýše 50 položek.",
+  })
+  .refine((data) => {
+    try {
+      return JSON.stringify(data).length <= 20_000;
+    } catch {
+      return false;
+    }
+  }, {
+    message: "Data uzlu nesmí překročit 20 000 znaků JSON.",
+  });
+
 const scriptNodeSchema = z.object({
-  id: z.string(),
-  type: z.string(),
-  position: z.object({ x: z.number(), y: z.number() }),
-  data: z.record(z.string(), z.unknown()),
-});
+  id: z.string().trim().min(1).max(128),
+  type: z.string().trim().min(1).max(100),
+  position: z.object({
+    x: z.number().finite().min(-1_000_000).max(1_000_000),
+    y: z.number().finite().min(-1_000_000).max(1_000_000),
+  }).strict(),
+  data: scriptNodeDataSchema,
+}).strict();
 
 const scriptEdgeSchema = z.object({
-  id: z.string(),
-  source: z.string(),
-  target: z.string(),
-  label: z.string().optional(),
-  type: z.string().optional(),
-});
+  id: z.string().trim().min(1).max(128),
+  source: z.string().trim().min(1).max(128),
+  target: z.string().trim().min(1).max(128),
+  label: z.string().trim().max(1_000).optional(),
+  type: z.string().trim().max(100).optional(),
+}).strict();
+
+const scriptNodesSchema = z.array(scriptNodeSchema).max(500);
+const scriptEdgesSchema = z.array(scriptEdgeSchema).max(1_000);
 
 const MAX_LEGACY_AI_INPUT_CHARS = 50_000;
 
@@ -78,16 +98,16 @@ export const appRouter = router({
     get: protectedProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) => db.getScriptById(input.id, ctx.user.id)),
     create: protectedProcedure.input(z.object({
       name: z.string().min(1).max(255),
-      description: z.string().optional(),
-      nodes: z.array(scriptNodeSchema).optional(),
-      edges: z.array(scriptEdgeSchema).optional(),
+      description: z.string().trim().max(10_000).optional(),
+      nodes: scriptNodesSchema.optional(),
+      edges: scriptEdgesSchema.optional(),
     })).mutation(({ ctx, input }) => db.createScript({ ...input, userId: ctx.user.id, nodes: input.nodes || [], edges: input.edges || [] })),
     update: protectedProcedure.input(z.object({
       id: z.number(),
       name: z.string().min(1).max(255).optional(),
-      description: z.string().optional(),
-      nodes: z.array(scriptNodeSchema).optional(),
-      edges: z.array(scriptEdgeSchema).optional(),
+      description: z.string().trim().max(10_000).optional(),
+      nodes: scriptNodesSchema.optional(),
+      edges: scriptEdgesSchema.optional(),
       status: z.enum(["draft", "ready", "running", "paused", "error"]).optional(),
     })).mutation(({ ctx, input }) => {
       const { id, ...data } = input;
