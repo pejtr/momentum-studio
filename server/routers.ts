@@ -431,9 +431,9 @@ export const appRouter = router({
     chat: protectedProcedure.input(z.object({
       messages: z.array(z.object({
         role: z.enum(['user', 'assistant', 'system']),
-        content: z.string(),
-      })),
-      systemPrompt: z.string().optional(),
+        content: z.string().min(1).max(10_000),
+      })).min(1).max(50),
+      systemPrompt: z.string().max(5_000).optional(),
       persona: z.enum(['marketing', 'technical', 'general']).optional(),
       saveToHistory: z.boolean().optional(),
     })).mutation(async ({ ctx, input }) => {
@@ -476,6 +476,7 @@ export const appRouter = router({
         })),
       ];
 
+      const credits = await requireAiCredit(ctx.user.id, "ai_chat");
       const response = await invokeLLM({ messages });
       const content = response.choices[0]?.message?.content;
       const responseContent = typeof content === 'string' ? content : 'Sorry, I could not generate a response.';
@@ -500,7 +501,7 @@ export const appRouter = router({
         });
       }
 
-      return { content: responseContent };
+      return { content: responseContent, credits };
     }),
     
     getHistory: protectedProcedure.input(z.object({
@@ -513,11 +514,11 @@ export const appRouter = router({
       db.clearAIConversationHistory(ctx.user.id)
     ),
     generateWorkflow: protectedProcedure.input(z.object({
-      prompt: z.string(),
+      prompt: z.string().min(1).max(5_000),
       conversationHistory: z.array(z.object({
-        role: z.string(),
-        content: z.string(),
-      })).optional(),
+        role: z.enum(['user', 'assistant']),
+        content: z.string().min(1).max(5_000),
+      })).max(20).optional(),
     })).mutation(async ({ ctx, input }) => {
       const { invokeLLM } = await import('./_core/llm');
 
@@ -551,6 +552,7 @@ Example:
         { role: 'user' as const, content: input.prompt },
       ];
 
+      const credits = await requireAiCredit(ctx.user.id, "workflow_generation");
       const response = await invokeLLM({
         messages,
         response_format: {
@@ -592,7 +594,7 @@ Example:
 
       const content = response.choices[0]?.message?.content;
       const result = JSON.parse(typeof content === 'string' ? content : '{}');
-      return result;
+      return { ...result, credits };
     }),
 
     // PDF Summarizer for QA documentation

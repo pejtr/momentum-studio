@@ -1,0 +1,1 @@
+ALTER TABLE `ai_credit_usage` MODIFY COLUMN `tool` enum('hermes','pdf_summary','test_case_generation','xml_validation','ai_chat','workflow_generation','engagement_comment') NOT NULL;

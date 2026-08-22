@@ -933,6 +933,12 @@
 - [x] Remove hostname and platform fingerprinting fields from dashboard metrics
 - [x] Add deterministic regression tests for metrics access and safe response shape
 
+## Security Hardening: Complete AI Credit Enforcement
+- [x] Extend the AI usage ledger for legacy chat, workflow generation and engagement comment generation
+- [x] Reserve a rate-limited AI credit before every direct legacy LLM invocation
+- [x] Bound legacy AI text and message-array inputs before invoking the model
+- [x] Add deterministic regression coverage for legacy AI credit-bypass prevention
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

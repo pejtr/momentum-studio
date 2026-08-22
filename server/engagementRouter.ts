@@ -1,6 +1,19 @@
 import { router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import * as db from "./db";
+import { consumeAiCredit, type AiCreditTool } from "./aiCredits";
+
+async function requireAiCredit(userId: number, tool: AiCreditTool) {
+  const consumption = await consumeAiCredit(userId, tool);
+  if (!consumption.allowed) {
+    const message = consumption.reason === "rate_limited"
+      ? `Příliš mnoho AI požadavků. Zkuste to znovu za ${consumption.retryAfterSeconds ?? 1} s.`
+      : "Měsíční limit AI kreditů byl vyčerpán. Další kredity budou dostupné při příštím obnovení období.";
+    throw new TRPCError({ code: "TOO_MANY_REQUESTS", message });
+  }
+  return consumption.status;
+}
 
 export const engagementRouter = router({
   // ========== Engagement Campaigns ==========
@@ -145,8 +158,8 @@ export const engagementRouter = router({
     generateComment: protectedProcedure
       .input(z.object({
         platform: z.enum(['instagram', 'tiktok', 'facebook', 'youtube', 'twitter']),
-        postContent: z.string(),
-        postUrl: z.string().optional(),
+        postContent: z.string().min(1).max(5_000),
+        postUrl: z.string().url().max(2_000).optional(),
         tone: z.enum(['friendly', 'professional', 'enthusiastic', 'casual', 'supportive']).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -177,6 +190,7 @@ Rules:
           { role: 'user' as const, content: `Generate a comment for this ${input.platform} post:\n\n${input.postContent}` },
         ];
 
+        const credits = await requireAiCredit(ctx.user.id, "engagement_comment");
         const response = await invokeLLM({ messages });
         const content = response.choices[0]?.message?.content;
         const generatedComment = typeof content === 'string' ? content : 'Great content! 👍';
@@ -191,7 +205,7 @@ Rules:
           wasUsed: 0,
         });
 
-        return { comment: generatedComment };
+        return { comment: generatedComment, credits };
       }),
 
     commentHistory: protectedProcedure

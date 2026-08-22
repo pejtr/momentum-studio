@@ -8,6 +8,9 @@ export const AI_CREDIT_TOOLS = [
   "pdf_summary",
   "test_case_generation",
   "xml_validation",
+  "ai_chat",
+  "workflow_generation",
+  "engagement_comment",
 ] as const;
 
 export type AiCreditTool = (typeof AI_CREDIT_TOOLS)[number];

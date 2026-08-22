@@ -20,7 +20,7 @@ import {
 
 export default function AIGenerator() {
   const [prompt, setPrompt] = useState("");
-  const [conversation, setConversation] = useState<Array<{ role: string; content: string }>>([]);
+  const [conversation, setConversation] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const [generatedWorkflow, setGeneratedWorkflow] = useState<any>(null);
 
   const generateMutation = trpc.ai.generateWorkflow.useMutation({
