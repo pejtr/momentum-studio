@@ -1030,6 +1030,11 @@
 - [x] Preserve server-side access to secrets for owner-scoped execution only
 - [x] Add deterministic regression coverage for profile secret redaction
 
+## Security Hardening: Blog HTML Rendering
+- [x] Sanitize stored blog HTML before browser rendering
+- [x] Preserve safe article formatting while removing executable markup
+- [x] Add deterministic sanitizer-integration regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

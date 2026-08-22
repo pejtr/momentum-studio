@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar, Eye, ArrowLeft, User } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { sanitizeBlogHtml } from "@/lib/sanitizeBlogHtml";
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 
@@ -132,7 +133,7 @@ export default function BlogPost() {
               {/* Article Content */}
               <div
                 className="prose prose-invert prose-indigo max-w-none"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(post.content) }}
               />
 
               {/* Tags */}
