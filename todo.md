@@ -1015,6 +1015,11 @@
 - [x] Bound live-session cursor coordinates and selected node IDs
 - [x] Add deterministic collaboration validation-boundary regression coverage
 
+## Security Hardening: Operational Input Bounds
+- [x] Bound execution-status error messages and execution identifiers
+- [x] Bound container host, port, name and lifecycle resource identifiers
+- [x] Add deterministic operational validation-boundary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

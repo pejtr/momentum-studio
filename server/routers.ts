@@ -167,9 +167,9 @@ export const appRouter = router({
       stepsTotal: input.stepsTotal || 0,
     })),
     updateStatus: protectedProcedure.input(z.object({
-      id: z.number(),
+      id: positiveResourceIdSchema,
       status: z.enum(["queued", "running", "completed", "failed"]),
-      error: z.string().optional(),
+      error: z.string().trim().min(1).max(5_000).optional(),
     })).mutation(async ({ ctx, input }) => {
       const execution = await db.updateExecution(input.id, ctx.user.id, {
         status: input.status,
@@ -201,19 +201,19 @@ export const appRouter = router({
   containers: router({
     list: protectedProcedure.query(({ ctx }) => db.getContainersByUser(ctx.user.id)),
     create: protectedProcedure.input(z.object({
-      name: z.string().min(1).max(255),
-      host: z.string().min(1),
-      port: z.number(),
+      name: z.string().trim().min(1).max(255),
+      host: z.string().trim().min(1).max(255),
+      port: z.number().int().min(1).max(65_535),
     })).mutation(({ ctx, input }) => db.createContainer({ ...input, userId: ctx.user.id })),
     update: protectedProcedure.input(z.object({
-      id: z.number(),
-      name: z.string().optional(),
+      id: positiveResourceIdSchema,
+      name: z.string().trim().min(1).max(255).optional(),
       status: z.enum(["running", "stopped", "error", "deploying"]).optional(),
     })).mutation(({ ctx, input }) => {
       const { id, ...data } = input;
       return db.updateContainer(id, ctx.user.id, data);
     }),
-    delete: protectedProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => db.deleteContainer(input.id, ctx.user.id)),
+    delete: protectedProcedure.input(z.object({ id: positiveResourceIdSchema })).mutation(({ ctx, input }) => db.deleteContainer(input.id, ctx.user.id)),
   }),
 
   // Templates
