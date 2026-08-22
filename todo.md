@@ -1010,6 +1010,11 @@
 - [x] Validate execution IDs before stop and PDF report export operations
 - [x] Add deterministic execution resource-identifier regression coverage
 
+## Security Hardening: Collaboration Input Bounds
+- [x] Bound workspace metadata and resource identifiers
+- [x] Bound live-session cursor coordinates and selected node IDs
+- [x] Add deterministic collaboration validation-boundary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

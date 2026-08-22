@@ -231,20 +231,23 @@ export const appRouter = router({
   collaboration: router({
     workspaces: protectedProcedure.query(({ ctx }) => db.getWorkspacesByUser(ctx.user.id)),
     createWorkspace: protectedProcedure.input(z.object({
-      name: z.string().min(1).max(255),
-      description: z.string().optional(),
+      name: z.string().trim().min(1).max(255),
+      description: z.string().trim().max(10_000).optional(),
     })).mutation(({ ctx, input }) => db.createWorkspace({ ...input, ownerId: ctx.user.id })),
-    getMembers: protectedProcedure.input(z.object({ workspaceId: z.number() })).query(({ ctx, input }) => db.getWorkspaceMembers(input.workspaceId, ctx.user.id)),
+    getMembers: protectedProcedure.input(z.object({ workspaceId: positiveResourceIdSchema })).query(({ ctx, input }) => db.getWorkspaceMembers(input.workspaceId, ctx.user.id)),
     addMember: protectedProcedure.input(z.object({
-      workspaceId: z.number(),
-      userId: z.number(),
+      workspaceId: positiveResourceIdSchema,
+      userId: positiveResourceIdSchema,
       role: z.enum(["owner", "editor", "viewer"]),
     })).mutation(({ ctx, input }) => db.addWorkspaceMember(input, ctx.user.id)),
-    getActiveSessions: protectedProcedure.input(z.object({ scriptId: z.number() })).query(({ ctx, input }) => db.getActiveSessions(input.scriptId, ctx.user.id)),
+    getActiveSessions: protectedProcedure.input(z.object({ scriptId: positiveResourceIdSchema })).query(({ ctx, input }) => db.getActiveSessions(input.scriptId, ctx.user.id)),
     updateSession: protectedProcedure.input(z.object({
-      scriptId: z.number(),
-      cursorPosition: z.object({ x: z.number(), y: z.number() }).optional(),
-      selectedNodeId: z.string().optional(),
+      scriptId: positiveResourceIdSchema,
+      cursorPosition: z.object({
+        x: z.number().finite().min(-1_000_000).max(1_000_000),
+        y: z.number().finite().min(-1_000_000).max(1_000_000),
+      }).strict().optional(),
+      selectedNodeId: z.string().trim().min(1).max(128).optional(),
     })).mutation(({ ctx, input }) => db.upsertCollaborationSession({ ...input, userId: ctx.user.id }, ctx.user.id)),
   }),
 
