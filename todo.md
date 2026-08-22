@@ -961,3 +961,20 @@
 - [x] Frontend useHermesStream hook consuming fetch + ReadableStream
 - [x] Progressive token rendering in MessageBubble with isStreaming cursor
 - [x] Abort/cancel streaming mid-response via AbortController + Stop button
+
+## Quality Gate: Atomické testování OMNIMATRIX
+- [x] Inventarizuj existující Vitest testy a pokrytí kritických modulů
+- [x] Ověř TypeScript, produkční build a statickou integritu tras
+- [x] Spusť atomické unit testy pro routery, validaci vstupů a HERMES logiku
+- [x] Ověř runtime endpointy: tRPC health/auth, systémové metriky a HERMES SSE handshake
+- [x] Proveď vizuální smoke test hlavního dashboardu a HERMES rozhraní
+- [x] Zdokumentuj průchozí testy, reprodukovatelné vady a limity produkční připravenosti
+
+## Bezpečnostní oprava z testování HERMES SSE
+- [x] Vyžaduj platné přihlášení pro HERMES SSE a izoluj historii konverzace podle identity uživatele
+
+## Nálezy z atomického testování
+- [ ] Sjednoť LCARS Neon Glow vizuální systém pro HERMES a tři AI nástroje; aktuálně používají starší zelený terminálový styl
+- [ ] Lokalizuj onboarding do češtiny a přidej jednoznačné tlačítko „Přeskočit vše“, aby neblokoval první práci s dashboardem
+- [ ] Izoluj automatizované testy od produkčních dat pomocí testovací databáze nebo řízeného cleanupu
+- [ ] Oprav nebo potlač neplatné preview analytics volání, které vrací HTTP 400 „Website not found“

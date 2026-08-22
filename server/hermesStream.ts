@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { invokeLLMStream } from "./_core/llm";
 import { getDb } from "./db";
 import { hermesMessages, hermesMemory } from "../drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import { sdk } from "./_core/sdk";
 
 // ─── HERMES System Prompt (same as in hermes.ts) ─────────────────────────────
@@ -40,13 +40,19 @@ export const hermesStreamRouter = Router();
  * Returns: SSE stream of text/event-stream
  */
 hermesStreamRouter.post("/api/hermes/stream", async (req: Request, res: Response) => {
-  // Auth check
-  let userId: number | null = null;
+  // HERMES conversations and long-term memory are private user data. Do not
+  // allow anonymous streams or cross-user access via guessed session IDs.
+  let userId: number;
   try {
     const user = await sdk.authenticateRequest(req);
-    userId = user?.id ?? null;
+    if (!user) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+    userId = user.id;
   } catch {
-    // allow unauthenticated; HERMES still works without memory
+    res.status(401).json({ error: "Authentication required" });
+    return;
   }
 
   const { message, sessionId } = req.body as { message?: string; sessionId?: string };
@@ -83,7 +89,10 @@ hermesStreamRouter.post("/api/hermes/stream", async (req: Request, res: Response
     const history = await db
       .select()
       .from(hermesMessages)
-      .where(eq(hermesMessages.sessionId, sessionId))
+      .where(and(
+        eq(hermesMessages.sessionId, sessionId),
+        eq(hermesMessages.userId, userId)
+      ))
       .orderBy(desc(hermesMessages.createdAt))
       .limit(20);
 
@@ -94,25 +103,22 @@ hermesStreamRouter.post("/api/hermes/stream", async (req: Request, res: Response
 
     // Load memory context
     let memoryContext = "";
-    if (userId) {
-      const memories = await db
-        .select()
-        .from(hermesMemory)
-        .where(eq(hermesMemory.userId, userId))
-        .limit(20);
+    const memories = await db
+      .select()
+      .from(hermesMemory)
+      .where(eq(hermesMemory.userId, userId))
+      .limit(20);
 
-      if (memories.length > 0) {
-        memoryContext =
-          "\n\nUSER MEMORY CONTEXT:\n" +
-          memories.map((m) => `[${m.category}] ${m.key}: ${m.value}`).join("\n");
-      }
+    if (memories.length > 0) {
+      memoryContext =
+        "\n\nUSER MEMORY CONTEXT:\n" +
+        memories.map((m) => `[${m.category}] ${m.key}: ${m.value}`).join("\n");
     }
 
     // Save user message to DB
-    const resolvedUserId = userId ?? 0;
     await db.insert(hermesMessages).values({
       sessionId,
-      userId: resolvedUserId,
+      userId,
       role: "user",
       content: message,
     });
@@ -140,7 +146,7 @@ hermesStreamRouter.post("/api/hermes/stream", async (req: Request, res: Response
     // Save assistant response to DB
     await db.insert(hermesMessages).values({
       sessionId,
-      userId: resolvedUserId,
+      userId,
       role: "assistant",
       content: fullContent,
     });

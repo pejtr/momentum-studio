@@ -258,7 +258,10 @@ describe("Integration Tests", () => {
     });
 
     // 5. Verify it appears in marketplace
-    const published = await caller.marketplace.list();
+    // Default ordering favors existing templates by download volume; request the
+    // documented recent ordering so the test deterministically validates this
+    // newly published record.
+    const published = await caller.marketplace.list({ sortBy: "recent" });
     const found = published.find((t) => t.id === template.id);
     expect(found).toBeDefined();
     expect(found?.status).toBe("published");
