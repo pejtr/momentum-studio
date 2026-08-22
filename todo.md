@@ -928,6 +928,11 @@
 - [x] Verify anonymous and standard-user callers cannot mutate taxonomy
 - [x] Preserve public category and tag reads with deterministic regression coverage
 
+## Security Hardening: Metrics Exposure
+- [x] Require authentication for detailed system metrics
+- [x] Remove hostname and platform fingerprinting fields from dashboard metrics
+- [x] Add deterministic regression tests for metrics access and safe response shape
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

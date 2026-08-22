@@ -635,7 +635,7 @@ Example:
 
   // System Metrics (real data via Node.js os module)
   metrics: router({
-    system: publicProcedure.query(() => {
+    system: protectedProcedure.query(() => {
       const cpus = os.cpus();
       const totalMem = os.totalmem();
       const freeMem = os.freemem();
@@ -647,12 +647,8 @@ Example:
       const cpuCount = cpus.length || 1;
       const cpuPercent = Math.min(100, Math.round((loadAvg1 / cpuCount) * 100));
 
-      // CPU model from os.cpus()
-      const cpuModel = cpus[0]?.model?.trim() || "Unknown CPU";
-
       return {
         cpu: {
-          model: cpuModel,
           cores: cpuCount,
           loadPercent: cpuPercent,
           loadAvg: { m1: loadAvg1, m5: os.loadavg()[1], m15: os.loadavg()[2] },
@@ -667,9 +663,6 @@ Example:
           seconds: os.uptime(),
           formatted: formatUptime(os.uptime()),
         },
-        platform: os.platform(),
-        arch: os.arch(),
-        hostname: os.hostname(),
         timestamp: Date.now(),
       };
     }),
