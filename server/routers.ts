@@ -198,18 +198,18 @@ export const appRouter = router({
       name: z.string().min(1).max(255),
       description: z.string().optional(),
     })).mutation(({ ctx, input }) => db.createWorkspace({ ...input, ownerId: ctx.user.id })),
-    getMembers: protectedProcedure.input(z.object({ workspaceId: z.number() })).query(({ input }) => db.getWorkspaceMembers(input.workspaceId)),
+    getMembers: protectedProcedure.input(z.object({ workspaceId: z.number() })).query(({ ctx, input }) => db.getWorkspaceMembers(input.workspaceId, ctx.user.id)),
     addMember: protectedProcedure.input(z.object({
       workspaceId: z.number(),
       userId: z.number(),
       role: z.enum(["owner", "editor", "viewer"]),
-    })).mutation(({ input }) => db.addWorkspaceMember(input)),
-    getActiveSessions: protectedProcedure.input(z.object({ scriptId: z.number() })).query(({ input }) => db.getActiveSessions(input.scriptId)),
+    })).mutation(({ ctx, input }) => db.addWorkspaceMember(input, ctx.user.id)),
+    getActiveSessions: protectedProcedure.input(z.object({ scriptId: z.number() })).query(({ ctx, input }) => db.getActiveSessions(input.scriptId, ctx.user.id)),
     updateSession: protectedProcedure.input(z.object({
       scriptId: z.number(),
       cursorPosition: z.object({ x: z.number(), y: z.number() }).optional(),
       selectedNodeId: z.string().optional(),
-    })).mutation(({ ctx, input }) => db.upsertCollaborationSession({ ...input, userId: ctx.user.id })),
+    })).mutation(({ ctx, input }) => db.upsertCollaborationSession({ ...input, userId: ctx.user.id }, ctx.user.id)),
   }),
 
   // Marketplace

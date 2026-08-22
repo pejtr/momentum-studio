@@ -245,33 +245,50 @@ export async function createWorkspace(data: InsertWorkspace) {
   return { id: Number(result[0].insertId) };
 }
 
-export async function getWorkspaceMembers(workspaceId: number) {
+export async function getWorkspaceMembers(workspaceId: number, ownerId: number) {
   const db = await getDb();
   if (!db) return [];
+  const [workspace] = await db
+    .select({ id: workspaces.id })
+    .from(workspaces)
+    .where(and(eq(workspaces.id, workspaceId), eq(workspaces.ownerId, ownerId)))
+    .limit(1);
+  if (!workspace) return [];
   return db.select().from(workspaceMembers).where(eq(workspaceMembers.workspaceId, workspaceId));
 }
 
-export async function addWorkspaceMember(data: InsertWorkspaceMember) {
+export async function addWorkspaceMember(data: InsertWorkspaceMember, ownerId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const [workspace] = await db
+    .select({ id: workspaces.id })
+    .from(workspaces)
+    .where(and(eq(workspaces.id, data.workspaceId), eq(workspaces.ownerId, ownerId)))
+    .limit(1);
+  if (!workspace) return undefined;
   const result = await db.insert(workspaceMembers).values(data);
   return { id: Number(result[0].insertId) };
 }
 
-export async function getActiveSessions(scriptId: number) {
+export async function getActiveSessions(scriptId: number, userId: number) {
   const db = await getDb();
   if (!db) return [];
+  const script = await getScriptById(scriptId, userId);
+  if (!script) return [];
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
   return db.select().from(collaborationSessions)
     .where(and(eq(collaborationSessions.scriptId, scriptId), gt(collaborationSessions.lastActiveAt, fiveMinutesAgo)));
 }
 
-export async function upsertCollaborationSession(data: InsertCollaborationSession) {
+export async function upsertCollaborationSession(data: InsertCollaborationSession, ownerId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const script = await getScriptById(data.scriptId, ownerId);
+  if (!script) return false;
   await db.insert(collaborationSessions).values(data).onDuplicateKeyUpdate({
     set: { cursorPosition: data.cursorPosition, selectedNodeId: data.selectedNodeId, lastActiveAt: new Date() }
   });
+  return true;
 }
 
 // ========== Marketplace ==========

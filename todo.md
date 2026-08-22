@@ -877,6 +877,12 @@
 - [x] Return no execution record and send no notification after a cross-user update attempt
 - [x] Add regression test for cross-user execution status update
 
+## Security Hardening: Collaboration Ownership
+- [x] Scope workspace members by workspace owner before returning collaboration data
+- [x] Require workspace ownership before adding a member
+- [x] Scope active-session reads and collaboration session upserts by script owner
+- [x] Add cross-user regression tests for collaboration reads and mutations
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

@@ -84,6 +84,40 @@ describe("Collaboration Features", () => {
     // Session update is successful if no error is thrown
     expect(true).toBe(true);
   });
+
+  it("does not expose or mutate another user's collaboration data", async () => {
+    const ownerCaller = appRouter.createCaller(createAuthContext().ctx);
+    const otherUserCaller = appRouter.createCaller(createAuthContext(EXECUTION_OWNER_TEST_USER_ID).ctx);
+
+    const workspace = await ownerCaller.collaboration.createWorkspace({
+      name: "Owner-only Workspace",
+      description: "Collaboration data must remain owner-scoped.",
+    });
+    const script = await ownerCaller.scripts.create({
+      name: "Owner-only Collaboration Script",
+      description: "Script used for cross-user collaboration access checks.",
+    });
+
+    await expect(otherUserCaller.collaboration.getMembers({ workspaceId: workspace.id })).resolves.toEqual([]);
+    await expect(otherUserCaller.collaboration.addMember({
+      workspaceId: workspace.id,
+      userId: EXECUTION_OWNER_TEST_USER_ID,
+      role: "viewer",
+    })).resolves.toBeUndefined();
+    await expect(otherUserCaller.collaboration.getActiveSessions({ scriptId: script.id })).resolves.toEqual([]);
+    await expect(otherUserCaller.collaboration.updateSession({
+      scriptId: script.id,
+      cursorPosition: { x: 1, y: 1 },
+    })).resolves.toBe(false);
+
+    await expect(ownerCaller.collaboration.updateSession({
+      scriptId: script.id,
+      cursorPosition: { x: 10, y: 20 },
+    })).resolves.toBe(true);
+    const ownerSessions = await ownerCaller.collaboration.getActiveSessions({ scriptId: script.id });
+    expect(ownerSessions).toHaveLength(1);
+    expect(ownerSessions[0]).toMatchObject({ userId: TEST_USER_ID });
+  });
 });
 
 describe("Marketplace Features", () => {
