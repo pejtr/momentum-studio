@@ -7,6 +7,7 @@ import { invokeLLM } from "../_core/llm";
 import { TRPCError } from "@trpc/server";
 import { consumeAiCredit } from "../aiCredits";
 import { executeHermesQaTool } from "../hermesQaTools";
+import { MAX_HERMES_TOOL_CALLS, parseHermesMemoryOutput, parseHermesToolCall } from "../hermesOutputValidation";
 
 // ─── HERMES System Prompt ────────────────────────────────────────────────────
 const HERMES_SYSTEM_PROMPT = `You are HERMES — the Core AI Agent of OMNIMATRIX QA Automation Platform.
@@ -168,9 +169,7 @@ Only extract genuinely useful persistent facts. Max 3 items. If nothing worth re
       }
     });
 
-    const content = result.choices[0].message.content;
-    const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
-    const items = parsed.items || [];
+    const items = parseHermesMemoryOutput(result.choices[0].message.content);
 
     const dbConn = await getDb();
     if (!dbConn) return;
@@ -185,14 +184,14 @@ Only extract genuinely useful persistent facts. Max 3 items. If nothing worth re
       if (existing.length > 0) {
         await dbConn
           .update(hermesMemory)
-          .set({ value: item.value, category: item.category as "preference" | "fact" | "skill" | "context" | "goal" })
+          .set({ value: item.value, category: item.category })
           .where(and(eq(hermesMemory.userId, userId), eq(hermesMemory.key, item.key)));
       } else {
         await dbConn.insert(hermesMemory).values({
           userId,
           key: item.key,
           value: item.value,
-          category: item.category as "preference" | "fact" | "skill" | "context" | "goal",
+          category: item.category,
           confidence: 85
         });
       }
@@ -278,9 +277,20 @@ export const hermesRouter = router({
       if (firstChoice.finish_reason === "tool_calls" && firstChoice.message.tool_calls) {
         const toolResults: string[] = [];
 
-        for (const toolCall of firstChoice.message.tool_calls) {
-          const toolName = toolCall.function.name;
-          const toolInput = JSON.parse(toolCall.function.arguments || "{}");
+        for (const toolCall of firstChoice.message.tool_calls.slice(0, MAX_HERMES_TOOL_CALLS)) {
+          let rawToolInput: unknown;
+          try {
+            rawToolInput = JSON.parse(toolCall.function.arguments || "{}");
+          } catch {
+            rawToolInput = undefined;
+          }
+          const parsedToolCall = parseHermesToolCall(toolCall.function.name, rawToolInput);
+          if (!parsedToolCall) {
+            toolResults.push(`**Tool: ${toolCall.function.name}**\n\nVolání nástroje bylo odmítnuto kvůli neplatným nebo nadlimitním argumentům.`);
+            continue;
+          }
+          const toolName = parsedToolCall.name;
+          const toolInput = parsedToolCall.input;
 
           // Save tool call message
           await dbConn.insert(hermesMessages).values({

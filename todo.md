@@ -955,6 +955,11 @@
 - [x] Bound comments and taxonomy inputs and validate slug structure
 - [x] Add deterministic validation-boundary regression coverage
 
+## Security Hardening: HERMES Output Boundaries
+- [x] Validate and limit HERMES tool-call arguments before tool execution
+- [x] Validate and limit model-derived persistent memory before database writes
+- [x] Add deterministic malformed-output regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
