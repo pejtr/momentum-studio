@@ -1005,6 +1005,11 @@
 - [x] Bound hashtag monitor templates, action sets and daily action limits
 - [x] Add deterministic action and monitor validation-boundary regression coverage
 
+## Security Hardening: Execution Resource IDs
+- [x] Validate execution and profile IDs before starting execution
+- [x] Validate execution IDs before stop and PDF report export operations
+- [x] Add deterministic execution resource-identifier regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

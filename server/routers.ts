@@ -78,6 +78,7 @@ const profileCredentialsSchema = z.record(
 });
 const documentationTitleSchema = z.string().trim().min(1).max(255);
 const documentationContentSchema = z.string().max(16_000);
+const positiveResourceIdSchema = z.number().int().positive();
 
 export const appRouter = router({
   system: systemRouter,
@@ -331,8 +332,8 @@ export const appRouter = router({
   // Execution Engine
   execution: router({
     execute: protectedProcedure.input(z.object({
-      scriptId: z.number(),
-      profileId: z.number().optional(),
+      scriptId: positiveResourceIdSchema,
+      profileId: positiveResourceIdSchema.optional(),
       config: z.object({
         browser: z.enum(['chromium', 'firefox', 'webkit']).default('chromium'),
         headless: z.boolean().default(true),
@@ -398,7 +399,7 @@ export const appRouter = router({
       return { executionId };
     }),
 
-    stop: protectedProcedure.input(z.object({ executionId: z.number() })).mutation(async ({ ctx, input }) => {
+    stop: protectedProcedure.input(z.object({ executionId: positiveResourceIdSchema })).mutation(async ({ ctx, input }) => {
       await db.updateExecution(input.executionId, ctx.user.id, { status: 'cancelled' });
       return { success: true };
     }),
@@ -407,7 +408,7 @@ export const appRouter = router({
   // PDF Report Export
   reports: router({
     exportPDF: protectedProcedure.input(z.object({
-      executionId: z.number(),
+      executionId: positiveResourceIdSchema,
       sections: z.object({
         executionDetails: z.boolean().optional().default(true),
         logs: z.boolean().optional().default(true),
