@@ -978,3 +978,6 @@
 - [x] Lokalizuj onboarding do češtiny a přidej jednoznačné tlačítko „Přeskočit vše“, aby neblokoval první práci s dashboardem
 - [x] Izoluj automatizované testy od produkčních dat pomocí testovací databáze nebo řízeného cleanupu
 - [x] Oprav nebo potlač neplatné preview analytics volání, které vrací HTTP 400 „Website not found"
+
+## LCARS Holographic Finish
+- [x] Přidej jemný animovaný scanline efekt s podporou prefers-reduced-motion

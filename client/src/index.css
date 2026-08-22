@@ -181,6 +181,38 @@
   background-size: 48px 48px;
 }
 
+/* Holographic display scanlines: visual only, never intercepts interaction. */
+.dark #root::before {
+  content: "";
+  position: fixed;
+  inset: -100vh 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.06;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(153, 204, 255, 0.2) 0,
+    rgba(153, 204, 255, 0.2) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  mix-blend-mode: screen;
+  transform: translateY(-25%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dark #root::before {
+    animation: lcars-scan-drift 16s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dark #root::before {
+    animation: none;
+    opacity: 0.04;
+  }
+}
+
 /* LCARS heading glow — orange/gold */
 .dark h1, .dark h2, .dark h3 {
   text-shadow: 0 0 12px rgba(255, 153, 0, 0.45), 0 0 28px rgba(255, 153, 0, 0.15);
@@ -516,6 +548,11 @@
   10%  { opacity: 0.6; }
   90%  { opacity: 0.6; }
   100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes lcars-scan-drift {
+  from { transform: translateY(-25%); }
+  to   { transform: translateY(0); }
 }
 
 @keyframes neon-pulse-orange {
