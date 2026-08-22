@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar, Eye, ArrowLeft, User } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { sanitizeBlogHtml } from "@/lib/sanitizeBlogHtml";
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
@@ -13,7 +14,9 @@ import { Helmet } from "react-helmet";
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const [comment, setComment] = useState("");
+  const dateLocale = language === "cz" ? "cs-CZ" : "en-US";
 
   const { data: post, isLoading } = trpc.blog.getBySlug.useQuery({ slug: slug! });
   const { data: comments } = trpc.blog.comments.useQuery(
@@ -61,9 +64,9 @@ export default function BlogPost() {
   if (!post) {
     return (
       <div className="container mx-auto py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Post not found</h1>
+        <h1 className="text-2xl font-bold mb-4">{t("blog.postNotFound")}</h1>
         <Link href="/blog">
-          <Button>Back to Blog</Button>
+          <Button>{t("blog.backToBlog")}</Button>
         </Link>
       </div>
     );
@@ -91,7 +94,7 @@ export default function BlogPost() {
             <Link href="/blog">
               <Button variant="ghost" className="mb-6 text-slate-300 hover:text-white">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Blog
+                {t("blog.backToBlog")}
               </Button>
             </Link>
 
@@ -106,17 +109,17 @@ export default function BlogPost() {
                   <Calendar className="w-4 h-4" />
                   <span>
                     {post.publishedAt
-                      ? new Date(post.publishedAt).toLocaleDateString("en-US", {
+                      ? new Date(post.publishedAt).toLocaleDateString(dateLocale, {
                           year: "numeric",
                           month: "long",
                           day: "numeric",
                         })
-                      : "Draft"}
+                      : t("blog.draft")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Eye className="w-4 h-4" />
-                  <span>{post.viewCount} views</span>
+                  <span>{post.viewCount} {t("blog.views")}</span>
                 </div>
               </div>
 
@@ -152,14 +155,14 @@ export default function BlogPost() {
             <Card className="bg-slate-900/50 border-slate-800">
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold mb-6 text-slate-100">
-                  Comments ({comments?.filter((c) => c.status === "approved").length || 0})
+                  {t("blog.comments")} ({comments?.filter((c) => c.status === "approved").length || 0})
                 </h2>
 
                 {/* Add Comment Form */}
                 {user ? (
                   <div className="mb-8">
                     <Textarea
-                      placeholder="Share your thoughts..."
+                      placeholder={t("blog.shareThoughts")}
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       className="mb-3 bg-slate-800 border-slate-700 text-slate-100"
@@ -169,12 +172,12 @@ export default function BlogPost() {
                       onClick={handleSubmitComment}
                       disabled={!comment.trim() || addCommentMutation.isPending}
                     >
-                      {addCommentMutation.isPending ? "Posting..." : "Post Comment"}
+                      {addCommentMutation.isPending ? t("blog.posting") : t("blog.postComment")}
                     </Button>
                   </div>
                 ) : (
                   <div className="mb-8 p-4 bg-slate-800 rounded-lg text-slate-300">
-                    Please log in to leave a comment.
+                    {t("blog.loginToComment")}
                   </div>
                 )}
 
@@ -187,7 +190,7 @@ export default function BlogPost() {
                         <div className="flex items-center gap-2 mb-2">
                           <User className="w-4 h-4 text-slate-400" />
                           <span className="text-sm text-slate-400">
-                            {new Date(c.createdAt).toLocaleDateString()}
+                            {new Date(c.createdAt).toLocaleDateString(dateLocale)}
                           </span>
                         </div>
                         <p className="text-slate-200">{c.content}</p>
@@ -197,7 +200,7 @@ export default function BlogPost() {
 
                 {(!comments || comments.filter((c) => c.status === "approved").length === 0) && (
                   <p className="text-slate-400 text-center py-8">
-                    No comments yet. Be the first to comment!
+                    {t("blog.noComments")}
                   </p>
                 )}
               </CardContent>

@@ -10,7 +10,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const translations: Record<Language, Record<string, string>> = {
+export const translations: Record<Language, Record<string, string>> = {
   en: {
     // Menu items
     'menu.dashboard': 'Dashboard',
@@ -103,6 +103,18 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.memory': 'Memory',
     'dashboard.gpu': 'GPU',
     'dashboard.neuralEngine': 'Neural Engine',
+
+    // Blog detail
+    'blog.backToBlog': 'Back to Blog',
+    'blog.postNotFound': 'Post not found',
+    'blog.draft': 'Draft',
+    'blog.views': 'views',
+    'blog.comments': 'Comments',
+    'blog.shareThoughts': 'Share your thoughts...',
+    'blog.posting': 'Posting...',
+    'blog.postComment': 'Post Comment',
+    'blog.loginToComment': 'Please log in to leave a comment.',
+    'blog.noComments': 'No comments yet. Be the first to comment!',
 
     // Job Board
     'jobs.title': 'Remote QA Jobs',
@@ -255,6 +267,18 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.memory': 'Paměť',
     'dashboard.gpu': 'GPU',
     'dashboard.neuralEngine': 'Neuronový Engine',
+
+    // Detail blogu
+    'blog.backToBlog': 'Zpět na blog',
+    'blog.postNotFound': 'Článek nebyl nalezen',
+    'blog.draft': 'Koncept',
+    'blog.views': 'zobrazení',
+    'blog.comments': 'Komentáře',
+    'blog.shareThoughts': 'Podělte se o svůj názor...',
+    'blog.posting': 'Odesílání...',
+    'blog.postComment': 'Přidat komentář',
+    'blog.loginToComment': 'Pro přidání komentáře se prosím přihlaste.',
+    'blog.noComments': 'Zatím žádné komentáře. Buďte první, kdo přidá komentář!',
 
     // Job Board
     'jobs.title': 'Vzdálené QA Pozice',

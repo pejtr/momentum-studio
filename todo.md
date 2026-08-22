@@ -1035,6 +1035,11 @@
 - [x] Preserve safe article formatting while removing executable markup
 - [x] Add deterministic sanitizer-integration regression coverage
 
+## Localization: Blog Detail
+- [x] Add Czech and English blog detail labels to the shared dictionary
+- [x] Replace hardcoded blog detail interface text and locale date format
+- [x] Add deterministic localization dictionary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
