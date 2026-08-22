@@ -374,12 +374,24 @@ export async function incrementTemplateDownloads(id: number) {
 export async function getTemplateReviews(templateId: number) {
   const db = await getDb();
   if (!db) return [];
+  const [template] = await db
+    .select({ id: marketplaceTemplates.id })
+    .from(marketplaceTemplates)
+    .where(and(eq(marketplaceTemplates.id, templateId), eq(marketplaceTemplates.status, "published")))
+    .limit(1);
+  if (!template) return [];
   return db.select().from(templateReviews).where(eq(templateReviews.templateId, templateId)).orderBy(desc(templateReviews.createdAt));
 }
 
-export async function createTemplateReview(data: InsertTemplateReview) {
+export async function createEligibleTemplateReview(data: InsertTemplateReview) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const [template] = await db
+    .select({ id: marketplaceTemplates.id, creatorId: marketplaceTemplates.creatorId })
+    .from(marketplaceTemplates)
+    .where(and(eq(marketplaceTemplates.id, data.templateId), eq(marketplaceTemplates.status, "published")))
+    .limit(1);
+  if (!template || template.creatorId === data.userId) return undefined;
   const result = await db.insert(templateReviews).values(data);
   return { id: Number(result[0].insertId) };
 }

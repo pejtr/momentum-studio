@@ -894,6 +894,12 @@
 - [x] Block purchases of unpublished templates
 - [x] Add regression coverage for draft visibility and purchase restrictions
 
+## Marketplace Review Integrity
+- [x] Accept reviews only for published templates
+- [x] Reject creator self-reviews server-side
+- [x] Keep unpublished template reviews out of public access
+- [x] Add regression coverage for review eligibility checks
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

@@ -157,17 +157,17 @@ describe("Marketplace Features", () => {
   });
 
   it("adds a review to a template", async () => {
-    const { ctx } = createAuthContext();
-    const caller = appRouter.createCaller(ctx);
+    const ownerCaller = appRouter.createCaller(createAuthContext().ctx);
+    const reviewerCaller = appRouter.createCaller(createAuthContext(EXECUTION_OWNER_TEST_USER_ID).ctx);
 
-    // Create a template first
-    const template = await caller.marketplace.create({
+    const template = await ownerCaller.marketplace.create({
       name: "Test Template",
       platform: "instagram",
       price: 0,
     });
+    await ownerCaller.marketplace.publish({ id: template.id });
 
-    const review = await caller.marketplace.addReview({
+    const review = await reviewerCaller.marketplace.addReview({
       templateId: template.id,
       rating: 5,
       comment: "Excellent template!",
@@ -388,20 +388,19 @@ describe("PDF Report Export", () => {
 
 describe("Marketplace Rating & Feedback", () => {
   it("submits a review for a template", async () => {
-    const { ctx } = createAuthContext();
-    const caller = appRouter.createCaller(ctx);
+    const ownerCaller = appRouter.createCaller(createAuthContext().ctx);
+    const reviewerCaller = appRouter.createCaller(createAuthContext(EXECUTION_OWNER_TEST_USER_ID).ctx);
 
-    // Create a marketplace template first
-    const template = await caller.marketplace.create({
+    const template = await ownerCaller.marketplace.create({
       name: "Test Template for Reviews",
       description: "Template for testing reviews",
       category: "social-media",
       platform: "twitter",
       price: 0,
     });
+    await ownerCaller.marketplace.publish({ id: template.id });
 
-    // Submit a review
-    const review = await caller.marketplace.addReview({
+    const review = await reviewerCaller.marketplace.addReview({
       templateId: template.id,
       rating: 5,
       comment: "Excellent template!",
@@ -410,6 +409,23 @@ describe("Marketplace Rating & Feedback", () => {
     expect(review).toBeDefined();
     expect(review.id).toBeDefined();
     expect(typeof review.id).toBe("number");
+  });
+
+  it("rejects draft reviews and creator self-reviews", async () => {
+    const ownerCaller = appRouter.createCaller(createAuthContext().ctx);
+    const reviewerCaller = appRouter.createCaller(createAuthContext(EXECUTION_OWNER_TEST_USER_ID).ctx);
+    const draft = await ownerCaller.marketplace.create({
+      name: "Review Eligibility Draft",
+      description: "Review eligibility must be enforced server-side.",
+      category: "testing",
+      platform: "multi",
+      price: 0,
+    });
+
+    await expect(reviewerCaller.marketplace.addReview({ templateId: draft.id, rating: 4 })).rejects.toThrow("Recenzi lze přidat");
+    await ownerCaller.marketplace.publish({ id: draft.id });
+    await expect(ownerCaller.marketplace.addReview({ templateId: draft.id, rating: 5 })).rejects.toThrow("Recenzi lze přidat");
+    await expect(reviewerCaller.marketplace.addReview({ templateId: draft.id, rating: 4 })).resolves.toHaveProperty("id");
   });
 
   it("keeps draft templates creator-only and blocks purchase until publication", async () => {
@@ -441,26 +457,25 @@ describe("Marketplace Rating & Feedback", () => {
     });
   });
   it("calculates average rating correctly", async () => {
-    const { ctx } = createAuthContext();
-    const caller = appRouter.createCaller(ctx);
+    const ownerCaller = appRouter.createCaller(createAuthContext().ctx);
+    const reviewerCaller = appRouter.createCaller(createAuthContext(EXECUTION_OWNER_TEST_USER_ID).ctx);
 
-    const template = await caller.marketplace.create({
+    const template = await ownerCaller.marketplace.create({
       name: "Rating Test Template",
       description: "Template for testing average ratings",
       category: "testing",
       platform: "instagram",
       price: 0,
     });
+    await ownerCaller.marketplace.publish({ id: template.id });
 
-    // Submit multiple reviews (need different users, so we'll just submit one)
-    await caller.marketplace.addReview({
+    await reviewerCaller.marketplace.addReview({
       templateId: template.id,
       rating: 5,
       comment: "Great!",
     });
 
-    // Get reviews for the template
-    const reviews = await caller.marketplace.getReviews({ templateId: template.id });
+    const reviews = await ownerCaller.marketplace.getReviews({ templateId: template.id });
 
     expect(Array.isArray(reviews)).toBe(true);
     expect(reviews.length).toBeGreaterThanOrEqual(1);

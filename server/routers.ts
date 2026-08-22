@@ -249,7 +249,13 @@ export const appRouter = router({
       templateId: z.number(),
       rating: z.number().min(1).max(5),
       comment: z.string().optional(),
-    })).mutation(({ ctx, input }) => db.createTemplateReview({ ...input, userId: ctx.user.id })),
+    })).mutation(async ({ ctx, input }) => {
+      const review = await db.createEligibleTemplateReview({ ...input, userId: ctx.user.id });
+      if (!review) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Recenzi lze přidat pouze k publikované šabloně, kterou nevytvořil aktuální uživatel." });
+      }
+      return review;
+    }),
     hasPurchased: protectedProcedure.input(z.object({ templateId: z.number() })).query(({ ctx, input }) => 
       db.hasUserPurchased(input.templateId, ctx.user.id)
     ),
