@@ -51,12 +51,12 @@ export const engagementRouter = router({
     list: protectedProcedure.query(({ ctx }) => db.getEngagementCampaigns(ctx.user.id)),
     
     get: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: positiveResourceIdSchema }))
       .query(({ ctx, input }) => db.getEngagementCampaignById(input.id, ctx.user.id)),
     
     create: protectedProcedure
       .input(z.object({
-        profileId: z.number(),
+        profileId: positiveResourceIdSchema,
         name: z.string().min(1).max(255),
         platform: z.enum(['instagram', 'tiktok', 'facebook', 'youtube', 'twitter']),
         type: z.enum(['like', 'comment', 'follow', 'view_story', 'send_dm', 'hashtag_monitor']),
@@ -83,7 +83,7 @@ export const engagementRouter = router({
       }),
     
     delete: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: positiveResourceIdSchema }))
       .mutation(({ ctx, input }) => db.deleteEngagementCampaign(input.id, ctx.user.id)),
   }),
 
@@ -234,7 +234,7 @@ Rules:
 
     updateFeedback: protectedProcedure
       .input(z.object({
-        id: z.number(),
+        id: positiveResourceIdSchema,
         feedback: z.enum(['good', 'bad', 'neutral']),
       }))
       .mutation(({ ctx, input }) => 

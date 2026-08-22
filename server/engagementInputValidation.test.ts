@@ -49,4 +49,19 @@ describe("engagement campaign input bounds", () => {
       targetCriteria: { hashtags: Array.from({ length: 31 }, (_, index) => `qa-${index}`) },
     })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
+
+  it("rejects invalid campaign, profile and AI feedback identifiers before data access", async () => {
+    const caller = appRouter.createCaller(createContext());
+
+    await expect(caller.engagement.campaigns.get({ id: 0 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.engagement.campaigns.create({
+      profileId: -1,
+      name: "QA engagement check",
+      platform: "instagram",
+      type: "comment",
+    })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.engagement.ai.updateFeedback({ id: 1.5, feedback: "good" })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+  });
 });
