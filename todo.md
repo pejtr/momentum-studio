@@ -1055,6 +1055,10 @@
 - [x] Validate the request host and escape sitemap URL values before XML rendering
 - [x] Add deterministic regression coverage for malformed hosts and XML metacharacters
 
+## Security Hardening: Template Resource Identifiers
+- [x] Require positive integer identifiers across public template and marketplace resource operations
+- [x] Add deterministic regression coverage for invalid catalog resource identifiers
+
 ## Security Hardening: Blog HTML Rendering
 - [x] Sanitize stored blog HTML before browser rendering
 - [x] Preserve safe article formatting while removing executable markup

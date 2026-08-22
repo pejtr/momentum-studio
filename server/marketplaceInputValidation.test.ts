@@ -46,4 +46,12 @@ describe("marketplace input bounds", () => {
       comment: "x".repeat(5_001),
     })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
+
+  it("rejects invalid template identifiers before data access", async () => {
+    const caller = appRouter.createCaller(createContext());
+
+    await expect(caller.templates.get({ id: 0 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.marketplace.get({ id: -1 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.marketplace.getReviews({ templateId: 1.5 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 });

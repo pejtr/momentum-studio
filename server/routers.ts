@@ -238,7 +238,7 @@ export const appRouter = router({
   // Templates
   templates: router({
     list: publicProcedure.query(() => db.getAllTemplates()),
-    get: publicProcedure.input(z.object({ id: z.number() })).query(({ input }) => db.getTemplateById(input.id)),
+    get: publicProcedure.input(z.object({ id: positiveResourceIdSchema })).query(({ input }) => db.getTemplateById(input.id)),
   }),
 
   // Dashboard
@@ -279,8 +279,8 @@ export const appRouter = router({
       sortBy: z.enum(["downloads", "rating", "recent", "price"]).optional(),
       minRating: z.number().min(1).max(5).optional(),
     }).optional()).query(({ input }) => db.getMarketplaceTemplates(input)),
-    get: publicProcedure.input(z.object({ id: z.number() })).query(({ input }) => db.getPublishedMarketplaceTemplateById(input.id)),
-    getOwn: protectedProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) =>
+    get: publicProcedure.input(z.object({ id: positiveResourceIdSchema })).query(({ input }) => db.getPublishedMarketplaceTemplateById(input.id)),
+    getOwn: protectedProcedure.input(z.object({ id: positiveResourceIdSchema })).query(({ ctx, input }) =>
       db.getMarketplaceTemplateForCreator(input.id, ctx.user.id)
     ),
     create: protectedProcedure.input(z.object({
@@ -292,17 +292,17 @@ export const appRouter = router({
       edges: scriptEdgesSchema.optional(),
       price: z.number().int().min(0).max(1_000_000).optional(),
     })).mutation(({ ctx, input }) => db.createMarketplaceTemplate({ ...input, creatorId: ctx.user.id, nodes: input.nodes || [], edges: input.edges || [] })),
-    publish: protectedProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => 
+    publish: protectedProcedure.input(z.object({ id: positiveResourceIdSchema })).mutation(({ ctx, input }) => 
       db.updateMarketplaceTemplate(input.id, ctx.user.id, { status: "published" })
     ),
-    purchase: protectedProcedure.input(z.object({ templateId: z.number() })).mutation(async ({ ctx, input }) => {
+    purchase: protectedProcedure.input(z.object({ templateId: positiveResourceIdSchema })).mutation(async ({ ctx, input }) => {
       const template = await db.getPublishedMarketplaceTemplateById(input.templateId);
       if (!template) throw new Error("Template not found");
       await db.createTemplatePurchase({ templateId: input.templateId, userId: ctx.user.id, price: template.price });
       await db.incrementTemplateDownloads(input.templateId);
       return { success: true };
     }),
-    getReviews: publicProcedure.input(z.object({ templateId: z.number() })).query(({ input }) => db.getTemplateReviews(input.templateId)),
+    getReviews: publicProcedure.input(z.object({ templateId: positiveResourceIdSchema })).query(({ input }) => db.getTemplateReviews(input.templateId)),
     addReview: protectedProcedure.input(z.object({
       templateId: z.number().int().positive(),
       rating: z.number().int().min(1).max(5),
@@ -314,7 +314,7 @@ export const appRouter = router({
       }
       return review;
     }),
-    hasPurchased: protectedProcedure.input(z.object({ templateId: z.number() })).query(({ ctx, input }) => 
+    hasPurchased: protectedProcedure.input(z.object({ templateId: positiveResourceIdSchema })).query(({ ctx, input }) => 
       db.hasUserPurchased(input.templateId, ctx.user.id)
     ),
   }),
