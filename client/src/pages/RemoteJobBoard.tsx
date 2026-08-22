@@ -21,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
+import { getSafeExternalUrl } from "@/lib/safeExternalUrl";
 import { TagManager, JobTag, getTagColorClass } from "@/components/TagManager";
 import {
   Search,
@@ -747,7 +748,12 @@ export default function RemoteJobBoard() {
 
                           <Button
                             className="w-full"
-                            onClick={() => window.open(job.applyUrl, "_blank")}
+                            onClick={() => {
+                              const applyUrl = getSafeExternalUrl(job.applyUrl);
+                              if (applyUrl) {
+                                window.open(applyUrl, "_blank", "noopener,noreferrer");
+                              }
+                            }}
                           >
                             <ExternalLink className="h-4 w-4 mr-2" />
                             Apply on {job.source}

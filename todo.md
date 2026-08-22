@@ -1044,6 +1044,10 @@
 - [x] Require positive integer blog and comment resource identifiers across public and protected procedures
 - [x] Add deterministic regression coverage for invalid blog resource identifiers
 
+## Security Hardening: External Job Navigation
+- [x] Restrict job application navigation to safe HTTP(S) URLs and isolate opened tabs
+- [x] Add deterministic regression coverage for external URL validation
+
 ## Security Hardening: Blog HTML Rendering
 - [x] Sanitize stored blog HTML before browser rendering
 - [x] Preserve safe article formatting while removing executable markup
