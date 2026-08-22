@@ -883,6 +883,11 @@
 - [x] Scope active-session reads and collaboration session upserts by script owner
 - [x] Add cross-user regression tests for collaboration reads and mutations
 
+## Security Hardening: Documentation Ownership
+- [x] Scope documentation lists through the authenticated script owner
+- [x] Ensure cross-user documentation reads return no records
+- [x] Add regression coverage for documentation list isolation
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

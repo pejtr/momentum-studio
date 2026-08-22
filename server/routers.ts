@@ -254,7 +254,7 @@ export const appRouter = router({
 
   // Documentation
   documentation: router({
-    list: protectedProcedure.input(z.object({ scriptId: z.number() })).query(({ input }) => db.getDocumentationsByScript(input.scriptId)),
+    list: protectedProcedure.input(z.object({ scriptId: z.number() })).query(({ ctx, input }) => db.getDocumentationsByScript(input.scriptId, ctx.user.id)),
     generate: protectedProcedure.input(z.object({
       scriptId: z.number(),
       title: z.string().min(1).max(255),

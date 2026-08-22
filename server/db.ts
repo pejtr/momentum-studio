@@ -385,9 +385,11 @@ export async function hasUserPurchased(templateId: number, userId: number): Prom
 }
 
 // ========== Documentation ==========
-export async function getDocumentationsByScript(scriptId: number) {
+export async function getDocumentationsByScript(scriptId: number, userId: number) {
   const db = await getDb();
   if (!db) return [];
+  const script = await getScriptById(scriptId, userId);
+  if (!script) return [];
   return db.select().from(documentations).where(eq(documentations.scriptId, scriptId)).orderBy(desc(documentations.version));
 }
 

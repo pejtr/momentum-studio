@@ -258,6 +258,25 @@ describe("Documentation Features", () => {
     // Update is successful if no error is thrown
     expect(true).toBe(true);
   });
+
+  it("does not expose another user's script documentation", async () => {
+    const ownerCaller = appRouter.createCaller(createAuthContext().ctx);
+    const otherUserCaller = appRouter.createCaller(createAuthContext(EXECUTION_OWNER_TEST_USER_ID).ctx);
+    const script = await ownerCaller.scripts.create({
+      name: "Owner-only Documentation Script",
+      description: "Documentation must not be listed for another user.",
+    });
+
+    await ownerCaller.documentation.generate({
+      scriptId: script.id,
+      title: "Owner-only QA Documentation",
+    });
+
+    await expect(otherUserCaller.documentation.list({ scriptId: script.id })).resolves.toEqual([]);
+    const ownerDocuments = await ownerCaller.documentation.list({ scriptId: script.id });
+    expect(ownerDocuments).toHaveLength(1);
+    expect(ownerDocuments[0]).toMatchObject({ userId: TEST_USER_ID });
+  });
 });
 
 describe("Integration Tests", () => {
