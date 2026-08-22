@@ -12,7 +12,7 @@ import { aiCreditUsage } from "../drizzle/schema";
 import { getDb } from "./db";
 import { cleanupTestUserData, TEST_USER_IDS } from "./testDataIsolation";
 
-const TEST_USER_ID = TEST_USER_IDS.credits;
+const TEST_USER_ID = TEST_USER_IDS.creditRateLimit;
 
 beforeEach(async () => {
   rateCheckMock.mockReset();

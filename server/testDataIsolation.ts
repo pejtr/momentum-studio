@@ -28,6 +28,7 @@ export const TEST_USER_IDS = {
   blog: 990003,
   credits: 990004,
   executionOwnership: 990005,
+  creditRateLimit: 990006,
 } as const;
 
 /**

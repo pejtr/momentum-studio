@@ -900,6 +900,11 @@
 - [x] Keep unpublished template reviews out of public access
 - [x] Add regression coverage for review eligibility checks
 
+## Security Hardening: RBAC Verification
+- [x] Verify that anonymous and standard-user callers cannot invoke admin-only owner notifications
+- [x] Verify that an admin caller can invoke the guarded operation without role leakage
+- [x] Add deterministic regression coverage for admin guard behavior
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
