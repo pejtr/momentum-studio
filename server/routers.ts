@@ -108,7 +108,7 @@ export const appRouter = router({
   // Scripts CRUD
   scripts: router({
     list: protectedProcedure.query(({ ctx }) => db.getScriptsByUser(ctx.user.id)),
-    get: protectedProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) => db.getScriptById(input.id, ctx.user.id)),
+    get: protectedProcedure.input(z.object({ id: positiveResourceIdSchema })).query(({ ctx, input }) => db.getScriptById(input.id, ctx.user.id)),
     create: protectedProcedure.input(z.object({
       name: z.string().min(1).max(255),
       description: z.string().trim().max(10_000).optional(),
@@ -116,7 +116,7 @@ export const appRouter = router({
       edges: scriptEdgesSchema.optional(),
     })).mutation(({ ctx, input }) => db.createScript({ ...input, userId: ctx.user.id, nodes: input.nodes || [], edges: input.edges || [] })),
     update: protectedProcedure.input(z.object({
-      id: z.number(),
+      id: positiveResourceIdSchema,
       name: z.string().min(1).max(255).optional(),
       description: z.string().trim().max(10_000).optional(),
       nodes: scriptNodesSchema.optional(),
@@ -126,13 +126,13 @@ export const appRouter = router({
       const { id, ...data } = input;
       return db.updateScript(id, ctx.user.id, data);
     }),
-    delete: protectedProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => db.deleteScript(input.id, ctx.user.id)),
+    delete: protectedProcedure.input(z.object({ id: positiveResourceIdSchema })).mutation(({ ctx, input }) => db.deleteScript(input.id, ctx.user.id)),
   }),
 
   // Profiles CRUD
   profiles: router({
     list: protectedProcedure.query(async ({ ctx }) => (await db.getProfilesByUser(ctx.user.id)).map(redactProfileSecrets)),
-    get: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ ctx, input }) => {
+    get: protectedProcedure.input(z.object({ id: positiveResourceIdSchema })).query(async ({ ctx, input }) => {
       const profile = await db.getProfileById(input.id, ctx.user.id);
       return profile ? redactProfileSecrets(profile) : undefined;
     }),
@@ -153,7 +153,7 @@ export const appRouter = router({
       return db.createProfile({ ...protectedInput, userId: ctx.user.id });
     }),
     update: protectedProcedure.input(z.object({
-      id: z.number(),
+      id: positiveResourceIdSchema,
       name: profileNameSchema.optional(),
       platform: z.enum(["twitter", "instagram", "facebook", "tiktok", "youtube", "custom"]).optional(),
       proxyHost: proxyHostSchema.nullable().optional(),
@@ -167,15 +167,15 @@ export const appRouter = router({
       const { id, ...data } = input;
       return db.updateProfile(id, ctx.user.id, encryptProfileSecrets(data) as any);
     }),
-    delete: protectedProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => db.deleteProfile(input.id, ctx.user.id)),
+    delete: protectedProcedure.input(z.object({ id: positiveResourceIdSchema })).mutation(({ ctx, input }) => db.deleteProfile(input.id, ctx.user.id)),
   }),
 
   // Executions
   executions: router({
     list: protectedProcedure.input(z.object({ limit: z.number().int().min(1).max(100).optional() }).optional()).query(({ ctx, input }) => db.getExecutionsByUser(ctx.user.id, input?.limit)),
     create: protectedProcedure.input(z.object({
-      scriptId: z.number(),
-      profileId: z.number().optional(),
+      scriptId: positiveResourceIdSchema,
+      profileId: positiveResourceIdSchema.optional(),
       stepsTotal: z.number().optional(),
     })).mutation(({ ctx, input }) => db.createExecution({
       ...input,

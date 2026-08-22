@@ -1059,6 +1059,10 @@
 - [x] Require positive integer identifiers across public template and marketplace resource operations
 - [x] Add deterministic regression coverage for invalid catalog resource identifiers
 
+## Security Hardening: Core CRUD Resource Identifiers
+- [x] Require positive integer script, profile and execution resource identifiers across core CRUD procedures
+- [x] Add deterministic regression coverage for invalid core CRUD resource identifiers
+
 ## Security Hardening: Blog HTML Rendering
 - [x] Sanitize stored blog HTML before browser rendering
 - [x] Preserve safe article formatting while removing executable markup
