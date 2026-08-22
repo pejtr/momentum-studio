@@ -16,10 +16,37 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+    <script>
+      (() => {
+        const analyticsEndpoint = "%VITE_ANALYTICS_ENDPOINT%";
+        const websiteId = "%VITE_ANALYTICS_WEBSITE_ID%";
+        const previewHostSuffixes = [
+          ".manus.computer",
+          ".manuspre.computer",
+          ".manus-asia.computer",
+          ".manuscomputer.ai",
+          ".manusvm.computer",
+        ];
+        const isLocalPreview =
+          ["localhost", "127.0.0.1"].includes(window.location.hostname) ||
+          previewHostSuffixes.some((suffix) => window.location.hostname.endsWith(suffix));
+        const hasConfiguration =
+          analyticsEndpoint.length > 0 &&
+          websiteId.length > 0 &&
+          !analyticsEndpoint.includes("%VITE_") &&
+          !websiteId.includes("%VITE_");
+
+        // Local preview hosts are not registered analytics websites. Avoid
+        // sending noise/400 responses there while retaining production tracking.
+        if (!isLocalPreview && hasConfiguration) {
+          const script = document.createElement("script");
+          script.defer = true;
+          script.src = `${analyticsEndpoint}/umami`;
+          script.dataset.websiteId = websiteId;
+          document.head.appendChild(script);
+        }
+      })();
+    </script>
   </body>
 
 </html>
