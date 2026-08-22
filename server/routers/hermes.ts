@@ -47,6 +47,11 @@ RESPONSE FORMAT:
 - For code: always specify language in fenced blocks
 - For test cases: use Gherkin or table format as appropriate`;
 
+const hermesSessionIdSchema = z.string()
+  .min(1)
+  .max(64)
+  .regex(/^[A-Za-z0-9_-]+$/, "Neplatný identifikátor HERMES relace.");
+
 // ─── Tool Definitions ────────────────────────────────────────────────────────
 const HERMES_TOOLS = [
   {
@@ -207,7 +212,7 @@ export const hermesRouter = router({
   chat: protectedProcedure
     .input(z.object({
       message: z.string().min(1).max(8000),
-      sessionId: z.string().min(1).max(64),
+      sessionId: hermesSessionIdSchema,
     }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user.id;
@@ -352,8 +357,8 @@ export const hermesRouter = router({
   // Get conversation history for a session
   getHistory: protectedProcedure
     .input(z.object({
-      sessionId: z.string(),
-      limit: z.number().min(1).max(100).default(50)
+      sessionId: hermesSessionIdSchema,
+      limit: z.number().int().min(1).max(100).default(50)
     }))
     .query(async ({ ctx, input }) => {
       const dbConn = await getDb();
@@ -391,7 +396,7 @@ export const hermesRouter = router({
 
   // Clear a session's history
   clearSession: protectedProcedure
-    .input(z.object({ sessionId: z.string() }))
+    .input(z.object({ sessionId: hermesSessionIdSchema }))
     .mutation(async ({ ctx, input }) => {
       const dbConn = await getDb();
       if (!dbConn) return { success: false };
@@ -406,19 +411,21 @@ export const hermesRouter = router({
 
   // Get user's memory
   getMemory: protectedProcedure
-    .query(async ({ ctx }) => {
+    .input(z.object({ limit: z.number().int().min(1).max(100).default(50) }).optional())
+    .query(async ({ ctx, input }) => {
       const dbConn = await getDb();
       if (!dbConn) return [];
       return dbConn
         .select()
         .from(hermesMemory)
         .where(eq(hermesMemory.userId, ctx.user.id))
-        .orderBy(desc(hermesMemory.updatedAt));
+        .orderBy(desc(hermesMemory.updatedAt))
+        .limit(input?.limit ?? 50);
     }),
 
   // Delete a memory item
   deleteMemory: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
       const dbConn = await getDb();
       if (!dbConn) return { success: false };

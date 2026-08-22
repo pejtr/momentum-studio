@@ -960,6 +960,11 @@
 - [x] Validate and limit model-derived persistent memory before database writes
 - [x] Add deterministic malformed-output regression coverage
 
+## Security Hardening: HERMES Query Bounds
+- [x] Enforce the shared bounded session identifier on history and clear operations
+- [x] Bound persistent-memory listing and validate memory identifiers
+- [x] Add deterministic query-bound regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
