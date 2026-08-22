@@ -64,4 +64,20 @@ describe("engagement campaign input bounds", () => {
       code: "BAD_REQUEST",
     });
   });
+
+  it("rejects unsafe engagement URL protocols before storage or AI credit consumption", async () => {
+    const caller = appRouter.createCaller(createContext());
+
+    await expect(caller.engagement.actions.create({
+      campaignId: 1,
+      platform: "instagram",
+      actionType: "comment",
+      targetUrl: "javascript:alert(1)",
+    })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.engagement.ai.generateComment({
+      platform: "instagram",
+      postContent: "Valid QA automation post.",
+      postUrl: "data:text/html,unsafe",
+    })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 });

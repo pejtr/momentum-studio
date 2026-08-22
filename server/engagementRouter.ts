@@ -44,6 +44,13 @@ const engagementActionTypeSchema = z.enum(['like', 'comment', 'follow', 'view_st
 const monitorActionSchema = z.array(z.enum(['like', 'comment', 'follow'])).max(3);
 const engagementTemplateSchema = z.array(z.string().trim().min(1).max(5_000)).max(20);
 const actionsPerDaySchema = z.number().int().min(1).max(10_000);
+const safeHttpUrlSchema = z.string().url().max(2_000).refine(
+  (value) => {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  },
+  "URL musí používat bezpečný HTTP(S) protokol."
+);
 
 export const engagementRouter = router({
   // ========== Engagement Campaigns ==========
@@ -98,7 +105,7 @@ export const engagementRouter = router({
         campaignId: positiveResourceIdSchema,
         platform: z.enum(['instagram', 'tiktok', 'facebook', 'youtube', 'twitter']),
         actionType: engagementActionTypeSchema,
-        targetUrl: z.string().url().max(2_000).optional(),
+        targetUrl: safeHttpUrlSchema.optional(),
         targetUsername: z.string().trim().min(1).max(100).optional(),
         targetPostId: z.string().trim().min(1).max(255).optional(),
         content: z.string().trim().min(1).max(5_000).optional(),
@@ -177,7 +184,7 @@ export const engagementRouter = router({
       .input(z.object({
         platform: z.enum(['instagram', 'tiktok', 'facebook', 'youtube', 'twitter']),
         postContent: z.string().min(1).max(5_000),
-        postUrl: z.string().url().max(2_000).optional(),
+        postUrl: safeHttpUrlSchema.optional(),
         tone: z.enum(['friendly', 'professional', 'enthusiastic', 'casual', 'supportive']).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
