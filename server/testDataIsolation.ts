@@ -34,6 +34,8 @@ export const TEST_USER_IDS = {
   creditRateLimit: 990006,
   engagementOwner: 990008,
   engagementOther: 990009,
+  blogOwner: 990010,
+  blogOther: 990011,
 } as const;
 
 /**

@@ -917,6 +917,12 @@
 - [x] Scope AI comment feedback by authenticated owner
 - [x] Add cross-user regression tests for engagement reads and mutations
 
+## Security Hardening: Blog Publication and Ownership
+- [x] Serve only published posts and approved comments through public blog procedures
+- [x] Restrict post update and delete to the author
+- [x] Restrict comment moderation and deletion to the author of the parent post
+- [x] Add cross-user and unpublished-content regression tests
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

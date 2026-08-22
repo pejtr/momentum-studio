@@ -4,11 +4,7 @@ import * as db from "./db";
 
 export const blogRouter = router({
   // Public procedures
-  list: publicProcedure.input(z.object({
-    status: z.enum(["draft", "published", "archived"]).optional(),
-  }).optional()).query(async ({ input }) => {
-    return db.getBlogPosts(input?.status);
-  }),
+  list: publicProcedure.query(() => db.getBlogPosts("published")),
 
   getBySlug: publicProcedure.input(z.object({
     slug: z.string(),
@@ -23,6 +19,10 @@ export const blogRouter = router({
   get: publicProcedure.input(z.object({
     id: z.number(),
   })).query(({ input }) => db.getBlogPostById(input.id)),
+
+  getOwn: protectedProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) =>
+    db.getBlogPostForAuthor(input.id, ctx.user.id)
+  ),
 
   categories: publicProcedure.query(() => db.getBlogCategories()),
 
@@ -61,15 +61,15 @@ export const blogRouter = router({
     featuredImage: z.string().optional(),
     metaDescription: z.string().optional(),
     keywords: z.string().optional(),
-  })).mutation(({ input }) => {
+  })).mutation(({ ctx, input }) => {
     const { id, ...data } = input;
-    return db.updateBlogPost(id, data);
+    return db.updateBlogPost(id, ctx.user.id, data);
   }),
 
   delete: protectedProcedure.input(z.object({
     id: z.number(),
-  })).mutation(({ input }) => {
-    return db.deleteBlogPost(input.id);
+  })).mutation(({ ctx, input }) => {
+    return db.deleteBlogPost(input.id, ctx.user.id);
   }),
 
   // Comment management
@@ -86,20 +86,20 @@ export const blogRouter = router({
 
   approveComment: protectedProcedure.input(z.object({
     id: z.number(),
-  })).mutation(({ input }) => {
-    return db.updateBlogCommentStatus(input.id, "approved");
+  })).mutation(({ ctx, input }) => {
+    return db.updateBlogCommentStatus(input.id, ctx.user.id, "approved");
   }),
 
   rejectComment: protectedProcedure.input(z.object({
     id: z.number(),
-  })).mutation(({ input }) => {
-    return db.updateBlogCommentStatus(input.id, "rejected");
+  })).mutation(({ ctx, input }) => {
+    return db.updateBlogCommentStatus(input.id, ctx.user.id, "rejected");
   }),
 
   deleteComment: protectedProcedure.input(z.object({
     id: z.number(),
-  })).mutation(({ input }) => {
-    return db.deleteBlogComment(input.id);
+  })).mutation(({ ctx, input }) => {
+    return db.deleteBlogComment(input.id, ctx.user.id);
   }),
 
   // Category management

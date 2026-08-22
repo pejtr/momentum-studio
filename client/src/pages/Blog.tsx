@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Eye } from "lucide-react";
 
 export default function Blog() {
-  const { data: posts, isLoading } = trpc.blog.list.useQuery({ status: "published" });
+  const { data: posts, isLoading } = trpc.blog.list.useQuery();
 
   if (isLoading) {
     return (

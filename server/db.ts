@@ -452,15 +452,22 @@ export async function getBlogPosts(status?: string) {
 export async function getBlogPostBySlug(slug: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  const result = await db.select().from(blogPosts).where(and(eq(blogPosts.slug, slug), eq(blogPosts.status, "published"))).limit(1);
+  return result[0];
 }
 
 export async function getBlogPostById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(blogPosts).where(eq(blogPosts.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  const result = await db.select().from(blogPosts).where(and(eq(blogPosts.id, id), eq(blogPosts.status, "published"))).limit(1);
+  return result[0];
+}
+
+export async function getBlogPostForAuthor(id: number, authorId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(blogPosts).where(and(eq(blogPosts.id, id), eq(blogPosts.authorId, authorId))).limit(1);
+  return result[0];
 }
 
 export async function createBlogPost(data: InsertBlogPost) {
@@ -470,17 +477,17 @@ export async function createBlogPost(data: InsertBlogPost) {
   return { id: Number(result[0].insertId) };
 }
 
-export async function updateBlogPost(id: number, data: Partial<InsertBlogPost>) {
+export async function updateBlogPost(id: number, authorId: number, data: Partial<InsertBlogPost>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(blogPosts).set(data).where(eq(blogPosts.id, id));
-  return getBlogPostById(id);
+  await db.update(blogPosts).set(data).where(and(eq(blogPosts.id, id), eq(blogPosts.authorId, authorId)));
+  return getBlogPostForAuthor(id, authorId);
 }
 
-export async function deleteBlogPost(id: number) {
+export async function deleteBlogPost(id: number, authorId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.delete(blogPosts).where(eq(blogPosts.id, id));
+  await db.delete(blogPosts).where(and(eq(blogPosts.id, id), eq(blogPosts.authorId, authorId)));
 }
 
 export async function incrementBlogPostViews(id: number) {
@@ -521,26 +528,43 @@ export async function createBlogTag(data: InsertBlogTag) {
 export async function getBlogComments(postId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(blogComments).where(eq(blogComments.postId, postId)).orderBy(desc(blogComments.createdAt));
+  const post = await getBlogPostById(postId);
+  if (!post) return [];
+  return db.select().from(blogComments).where(and(eq(blogComments.postId, postId), eq(blogComments.status, "approved"))).orderBy(desc(blogComments.createdAt));
 }
 
 export async function createBlogComment(data: InsertBlogComment) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const post = await getBlogPostById(data.postId);
+  if (!post) return undefined;
   const result = await db.insert(blogComments).values(data);
   return { id: Number(result[0].insertId) };
 }
 
-export async function updateBlogCommentStatus(id: number, status: string) {
+async function getBlogCommentForPostAuthor(id: number, authorId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(blogComments).set({ status: status as any }).where(eq(blogComments.id, id));
+  if (!db) return undefined;
+  const [comment] = await db.select().from(blogComments).where(eq(blogComments.id, id)).limit(1);
+  if (!comment) return undefined;
+  const post = await getBlogPostForAuthor(comment.postId, authorId);
+  return post ? comment : undefined;
 }
 
-export async function deleteBlogComment(id: number) {
+export async function updateBlogCommentStatus(id: number, authorId: number, status: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  if (!(await getBlogCommentForPostAuthor(id, authorId))) return undefined;
+  await db.update(blogComments).set({ status: status as any }).where(eq(blogComments.id, id));
+  return { id };
+}
+
+export async function deleteBlogComment(id: number, authorId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (!(await getBlogCommentForPostAuthor(id, authorId))) return undefined;
   await db.delete(blogComments).where(eq(blogComments.id, id));
+  return { id };
 }
 
 
