@@ -1025,6 +1025,11 @@
 - [x] Bound optional XSD payload consistently with XML content
 - [x] Add deterministic AI file payload-limit regression coverage
 
+## Security Hardening: Profile Response Redaction
+- [x] Remove proxy passwords and credential maps from profile list and get responses
+- [x] Preserve server-side access to secrets for owner-scoped execution only
+- [x] Add deterministic regression coverage for profile secret redaction
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

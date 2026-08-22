@@ -80,6 +80,15 @@ const documentationTitleSchema = z.string().trim().min(1).max(255);
 const documentationContentSchema = z.string().max(16_000);
 const positiveResourceIdSchema = z.number().int().positive();
 
+export function redactProfileSecrets<T extends { proxyPassword?: unknown; credentials?: unknown }>(profile: T) {
+  const { proxyPassword, credentials, ...safeProfile } = profile;
+  return {
+    ...safeProfile,
+    hasProxyPassword: Boolean(proxyPassword),
+    hasCredentials: credentials !== null && credentials !== undefined,
+  };
+}
+
 export const appRouter = router({
   system: systemRouter,
   blog: blogRouter,
@@ -121,8 +130,11 @@ export const appRouter = router({
 
   // Profiles CRUD
   profiles: router({
-    list: protectedProcedure.query(({ ctx }) => db.getProfilesByUser(ctx.user.id)),
-    get: protectedProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) => db.getProfileById(input.id, ctx.user.id)),
+    list: protectedProcedure.query(async ({ ctx }) => (await db.getProfilesByUser(ctx.user.id)).map(redactProfileSecrets)),
+    get: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ ctx, input }) => {
+      const profile = await db.getProfileById(input.id, ctx.user.id);
+      return profile ? redactProfileSecrets(profile) : undefined;
+    }),
     create: protectedProcedure.input(z.object({
       name: profileNameSchema,
       platform: z.enum(["twitter", "instagram", "facebook", "tiktok", "youtube", "custom"]).optional(),
