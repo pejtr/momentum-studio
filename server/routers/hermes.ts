@@ -6,6 +6,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { invokeLLM } from "../_core/llm";
 import { TRPCError } from "@trpc/server";
 import { consumeAiCredit } from "../aiCredits";
+import { executeHermesQaTool } from "../hermesQaTools";
 
 // ─── HERMES System Prompt ────────────────────────────────────────────────────
 const HERMES_SYSTEM_PROMPT = `You are HERMES — the Core AI Agent of OMNIMATRIX QA Automation Platform.
@@ -104,26 +105,10 @@ const HERMES_TOOLS = [
 async function executeTool(name: string, input: Record<string, unknown>): Promise<string> {
   switch (name) {
     case "generateTestCases": {
-      const result = await invokeLLM({
-        messages: [
-          { role: "system", content: "You are a QA expert. Generate test cases in the requested format. Be thorough and precise." },
-          { role: "user", content: `Generate ${input.count || 5} ${input.type || "functional"} test cases for: ${input.feature}\nFormat: ${input.format || "gherkin"}` }
-        ]
-      });
-      return typeof result.choices[0].message.content === "string"
-        ? result.choices[0].message.content
-        : JSON.stringify(result.choices[0].message.content);
+      return executeHermesQaTool(name, input);
     }
     case "validateXML": {
-      const result = await invokeLLM({
-        messages: [
-          { role: "system", content: "You are an XML expert. Validate the XML and report issues with line numbers and fix suggestions." },
-          { role: "user", content: `Validate this XML:\n\`\`\`xml\n${input.xml}\n\`\`\`${input.xsd ? `\n\nAgainst XSD:\n\`\`\`xml\n${input.xsd}\n\`\`\`` : ""}` }
-        ]
-      });
-      return typeof result.choices[0].message.content === "string"
-        ? result.choices[0].message.content
-        : JSON.stringify(result.choices[0].message.content);
+      return executeHermesQaTool(name, input);
     }
     case "analyzeCode": {
       const result = await invokeLLM({

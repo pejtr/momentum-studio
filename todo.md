@@ -949,6 +949,11 @@
 - [x] Show remaining monthly credit status in the Czech LCARS AI tool headers
 - [x] Add isolated authorization and exhaustion tests for the credit API
 
+## Feature 80B: HERMES QA Orchestration
+- [x] Extract shared HERMES QA tool prompts and response handling for PDF, test-case and XML workflows
+- [x] Route AI QA pages and HERMES tool calls through the shared server-side orchestration layer
+- [x] Add deterministic tests for tool input mapping and preserve credit enforcement
+
 ## Feature HERMES: Core AI Agent
 - [x] DB schema: hermes_sessions, hermes_messages, hermes_memory tables
 - [x] Backend: hermesRouter with chat, getHistory, clearHistory, getMemory procedures
