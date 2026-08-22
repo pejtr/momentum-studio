@@ -939,6 +939,12 @@
 - [x] Bound legacy AI text and message-array inputs before invoking the model
 - [x] Add deterministic regression coverage for legacy AI credit-bypass prevention
 
+## Security Hardening: Docker Privilege Boundary
+- [x] Restrict Docker host inventory, logs, lifecycle and image operations to administrators
+- [x] Bound container identifiers, log tail, image names and create-operation inputs
+- [x] Replace Docker upstream error disclosure with safe API responses
+- [x] Add deterministic anonymous and standard-user denial coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

@@ -1,14 +1,32 @@
 import { z } from "zod";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { adminProcedure, router } from "./_core/trpc";
 import Docker from "dockerode";
 import { TRPCError } from "@trpc/server";
 
 // Initialize Docker client
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
+const dockerIdentifierSchema = z.string()
+  .min(1)
+  .max(128)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9_.-]*$/, "Neplatný identifikátor Docker kontejneru.");
+
+const dockerImageSchema = z.string()
+  .min(1)
+  .max(255)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9_.:@/-]*$/, "Neplatný název Docker image.");
+
+function dockerOperationFailed(operation: string, error: unknown): TRPCError {
+  console.error(`[Docker] ${operation} failed`, error);
+  return new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Operaci Docker se nepodařilo dokončit. Zkontrolujte stav služby a oprávnění administrátora.",
+  });
+}
+
 export const dockerRouter = router({
   // List all containers
-  listContainers: protectedProcedure
+  listContainers: adminProcedure
     .input(z.object({
       all: z.boolean().optional().default(true),
     }))
@@ -24,18 +42,15 @@ export const dockerRouter = router({
           created: container.Created,
           ports: container.Ports,
         }));
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to list containers: ${error.message}`,
-        });
+      } catch (error) {
+        throw dockerOperationFailed("list containers", error);
       }
     }),
 
   // Get container stats
-  getContainerStats: protectedProcedure
+  getContainerStats: adminProcedure
     .input(z.object({
-      containerId: z.string(),
+      containerId: dockerIdentifierSchema,
     }))
     .query(async ({ input }) => {
       try {
@@ -45,7 +60,9 @@ export const dockerRouter = router({
         // Calculate CPU percentage
         const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
         const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
-        const cpuPercent = (cpuDelta / systemDelta) * stats.cpu_stats.online_cpus * 100;
+        const cpuPercent = systemDelta > 0
+          ? (cpuDelta / systemDelta) * stats.cpu_stats.online_cpus * 100
+          : 0;
 
         // Calculate memory usage
         const memoryUsage = stats.memory_stats.usage || 0;
@@ -60,54 +77,45 @@ export const dockerRouter = router({
           networkRx: stats.networks?.eth0?.rx_bytes || 0,
           networkTx: stats.networks?.eth0?.tx_bytes || 0,
         };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to get container stats: ${error.message}`,
-        });
+      } catch (error) {
+        throw dockerOperationFailed("read container stats", error);
       }
     }),
 
   // Start container
-  startContainer: protectedProcedure
+  startContainer: adminProcedure
     .input(z.object({
-      containerId: z.string(),
+      containerId: dockerIdentifierSchema,
     }))
     .mutation(async ({ input }) => {
       try {
         const container = docker.getContainer(input.containerId);
         await container.start();
         return { success: true, message: "Container started successfully" };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to start container: ${error.message}`,
-        });
+      } catch (error) {
+        throw dockerOperationFailed("start container", error);
       }
     }),
 
   // Stop container
-  stopContainer: protectedProcedure
+  stopContainer: adminProcedure
     .input(z.object({
-      containerId: z.string(),
+      containerId: dockerIdentifierSchema,
     }))
     .mutation(async ({ input }) => {
       try {
         const container = docker.getContainer(input.containerId);
         await container.stop();
         return { success: true, message: "Container stopped successfully" };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to stop container: ${error.message}`,
-        });
+      } catch (error) {
+        throw dockerOperationFailed("stop container", error);
       }
     }),
 
   // Remove container
-  removeContainer: protectedProcedure
+  removeContainer: adminProcedure
     .input(z.object({
-      containerId: z.string(),
+      containerId: dockerIdentifierSchema,
       force: z.boolean().optional().default(false),
     }))
     .mutation(async ({ input }) => {
@@ -115,26 +123,26 @@ export const dockerRouter = router({
         const container = docker.getContainer(input.containerId);
         await container.remove({ force: input.force });
         return { success: true, message: "Container removed successfully" };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to remove container: ${error.message}`,
-        });
+      } catch (error) {
+        throw dockerOperationFailed("remove container", error);
       }
     }),
 
   // Create and start container
-  createContainer: protectedProcedure
+  createContainer: adminProcedure
     .input(z.object({
-      name: z.string(),
-      image: z.string(),
-      env: z.array(z.string()).optional(),
-      ports: z.record(z.string(), z.any()).optional(),
-      volumes: z.array(z.string()).optional(),
-      command: z.array(z.string()).optional(),
+      name: z.string().min(1).max(63).regex(/^[A-Za-z0-9][A-Za-z0-9_.-]*$/, "Neplatný název kontejneru."),
+      image: dockerImageSchema,
+      env: z.array(z.string().min(1).max(4_096).regex(/^[A-Za-z_][A-Za-z0-9_]*=.*/, "Proměnná prostředí musí mít tvar KEY=VALUE.")).max(50).optional(),
+      ports: z.record(
+        z.string().regex(/^\d{1,5}\/(tcp|udp)$/, "Neplatný port Dockeru."),
+        z.array(z.object({ HostPort: z.string().regex(/^\d{1,5}$/, "Neplatný host port.") })).min(1).max(10)
+      ).optional(),
+      volumes: z.array(z.string().min(1).max(512).regex(/^[-A-Za-z0-9_./]+:[-A-Za-z0-9_./]+(?::(?:ro|rw))?$/, "Neplatný Docker volume bind.")).max(20).optional(),
+      command: z.array(z.string().min(1).max(1_024)).max(64).optional(),
       restartPolicy: z.enum(["no", "always", "unless-stopped", "on-failure"]).optional().default("unless-stopped"),
     }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       try {
         // Pull image if not exists
         try {
@@ -178,19 +186,16 @@ export const dockerRouter = router({
           containerId: container.id,
           message: "Container created and started successfully",
         };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to create container: ${error.message}`,
-        });
+      } catch (error) {
+        throw dockerOperationFailed("create container", error);
       }
     }),
 
   // Get container logs
-  getContainerLogs: protectedProcedure
+  getContainerLogs: adminProcedure
     .input(z.object({
-      containerId: z.string(),
-      tail: z.number().optional().default(100),
+      containerId: dockerIdentifierSchema,
+      tail: z.number().int().min(1).max(1_000).optional().default(100),
     }))
     .query(async ({ input }) => {
       try {
@@ -205,16 +210,13 @@ export const dockerRouter = router({
         return {
           logs: logs.toString("utf-8"),
         };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to get container logs: ${error.message}`,
-        });
+      } catch (error) {
+        throw dockerOperationFailed("read container logs", error);
       }
     }),
 
   // List images
-  listImages: protectedProcedure.query(async () => {
+  listImages: adminProcedure.query(async () => {
     try {
       const images = await docker.listImages();
       return images.map(image => ({
@@ -223,18 +225,15 @@ export const dockerRouter = router({
         size: image.Size,
         created: image.Created,
       }));
-    } catch (error: any) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `Failed to list images: ${error.message}`,
-      });
+    } catch (error) {
+      throw dockerOperationFailed("list images", error);
     }
   }),
 
   // Pull image
-  pullImage: protectedProcedure
+  pullImage: adminProcedure
     .input(z.object({
-      image: z.string(),
+      image: dockerImageSchema,
     }))
     .mutation(async ({ input }) => {
       try {
@@ -248,11 +247,8 @@ export const dockerRouter = router({
           });
         });
         return { success: true, message: "Image pulled successfully" };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to pull image: ${error.message}`,
-        });
+      } catch (error) {
+        throw dockerOperationFailed("pull image", error);
       }
     }),
 });
