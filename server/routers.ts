@@ -46,6 +46,17 @@ const scriptEdgeSchema = z.object({
 
 const MAX_LEGACY_AI_INPUT_CHARS = 50_000;
 
+const profileNameSchema = z.string().trim().min(1).max(255);
+const proxyHostSchema = z.string().trim().min(1).max(255);
+const proxyCredentialSchema = z.string().max(255);
+const userAgentSchema = z.string().trim().min(1).max(2_000);
+const profileCredentialsSchema = z.record(
+  z.string().trim().min(1).max(100),
+  z.string().max(5_000),
+).refine((credentials) => Object.keys(credentials).length <= 50, {
+  message: "Credential mapa může obsahovat nejvýše 50 položek.",
+});
+
 export const appRouter = router({
   system: systemRouter,
   blog: blogRouter,
@@ -90,25 +101,25 @@ export const appRouter = router({
     list: protectedProcedure.query(({ ctx }) => db.getProfilesByUser(ctx.user.id)),
     get: protectedProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) => db.getProfileById(input.id, ctx.user.id)),
     create: protectedProcedure.input(z.object({
-      name: z.string().min(1).max(255),
+      name: profileNameSchema,
       platform: z.enum(["twitter", "instagram", "facebook", "tiktok", "youtube", "custom"]).optional(),
-      proxyHost: z.string().optional(),
-      proxyPort: z.number().optional(),
-      proxyUsername: z.string().optional(),
-      proxyPassword: z.string().optional(),
-      userAgent: z.string().optional(),
-      credentials: z.record(z.string(), z.string()).optional(),
+      proxyHost: proxyHostSchema.optional(),
+      proxyPort: z.number().int().min(1).max(65_535).optional(),
+      proxyUsername: proxyCredentialSchema.optional(),
+      proxyPassword: proxyCredentialSchema.optional(),
+      userAgent: userAgentSchema.optional(),
+      credentials: profileCredentialsSchema.optional(),
     })).mutation(({ ctx, input }) => db.createProfile({ ...input, userId: ctx.user.id, credentials: input.credentials as Record<string, string> | undefined })),
     update: protectedProcedure.input(z.object({
       id: z.number(),
-      name: z.string().min(1).max(255).optional(),
+      name: profileNameSchema.optional(),
       platform: z.enum(["twitter", "instagram", "facebook", "tiktok", "youtube", "custom"]).optional(),
-      proxyHost: z.string().nullable().optional(),
-      proxyPort: z.number().nullable().optional(),
-      proxyUsername: z.string().nullable().optional(),
-      proxyPassword: z.string().nullable().optional(),
-      userAgent: z.string().nullable().optional(),
-      credentials: z.record(z.string(), z.string()).optional(),
+      proxyHost: proxyHostSchema.nullable().optional(),
+      proxyPort: z.number().int().min(1).max(65_535).nullable().optional(),
+      proxyUsername: proxyCredentialSchema.nullable().optional(),
+      proxyPassword: proxyCredentialSchema.nullable().optional(),
+      userAgent: userAgentSchema.nullable().optional(),
+      credentials: profileCredentialsSchema.optional(),
       status: z.enum(["active", "inactive", "banned", "warming"]).optional(),
     })).mutation(({ ctx, input }) => {
       const { id, ...data } = input;

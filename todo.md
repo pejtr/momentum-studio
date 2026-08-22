@@ -980,6 +980,11 @@
 - [x] Align campaign create and update inputs with field-level limits
 - [x] Add deterministic engagement validation-boundary regression coverage
 
+## Security Hardening: Profile Input Bounds
+- [x] Bound profile, proxy and user-agent fields to storage-compatible limits
+- [x] Validate bounded credential maps before sensitive profile writes
+- [x] Add deterministic profile validation-boundary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
