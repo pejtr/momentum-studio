@@ -9,7 +9,7 @@ export const engagementRouter = router({
     
     get: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .query(({ input }) => db.getEngagementCampaignById(input.id)),
+      .query(({ ctx, input }) => db.getEngagementCampaignById(input.id, ctx.user.id)),
     
     create: protectedProcedure
       .input(z.object({
@@ -46,20 +46,21 @@ export const engagementRouter = router({
         actionConfig: z.any().optional(),
         actionsTarget: z.number().optional(),
       }))
-      .mutation(({ input }) => 
-        db.updateEngagementCampaign(input.id, input)
-      ),
+      .mutation(({ ctx, input }) => {
+        const { id, ...data } = input;
+        return db.updateEngagementCampaign(id, ctx.user.id, data);
+      }),
     
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => db.deleteEngagementCampaign(input.id)),
+      .mutation(({ ctx, input }) => db.deleteEngagementCampaign(input.id, ctx.user.id)),
   }),
 
   // ========== Engagement Actions ==========
   actions: router({
     list: protectedProcedure
       .input(z.object({ campaignId: z.number() }))
-      .query(({ input }) => db.getEngagementActions(input.campaignId)),
+      .query(({ ctx, input }) => db.getEngagementActions(input.campaignId, ctx.user.id)),
     
     create: protectedProcedure
       .input(z.object({
@@ -72,7 +73,7 @@ export const engagementRouter = router({
         content: z.string().optional(),
       }))
       .mutation(({ ctx, input }) => 
-        db.createEngagementAction({ ...input, userId: ctx.user.id })
+        db.createEngagementAction({ ...input, userId: ctx.user.id }, ctx.user.id)
       ),
     
     update: protectedProcedure
@@ -82,9 +83,10 @@ export const engagementRouter = router({
         error: z.string().optional(),
         executedAt: z.date().optional(),
       }))
-      .mutation(({ input }) => 
-        db.updateEngagementAction(input.id, input)
-      ),
+      .mutation(({ ctx, input }) => {
+        const { id, ...data } = input;
+        return db.updateEngagementAction(id, ctx.user.id, data);
+      }),
   }),
 
   // ========== Hashtag Monitors ==========
@@ -93,7 +95,7 @@ export const engagementRouter = router({
     
     get: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .query(({ input }) => db.getHashtagMonitorById(input.id)),
+      .query(({ ctx, input }) => db.getHashtagMonitorById(input.id, ctx.user.id)),
     
     create: protectedProcedure
       .input(z.object({
@@ -125,17 +127,17 @@ export const engagementRouter = router({
         maxActionsPerDay: z.number().optional(),
         isActive: z.boolean().optional(),
       }))
-      .mutation(({ input }) => {
+      .mutation(({ ctx, input }) => {
         const updateData: any = { ...input };
         if (input.autoEngage !== undefined) updateData.autoEngage = input.autoEngage ? 1 : 0;
         if (input.useAI !== undefined) updateData.useAI = input.useAI ? 1 : 0;
         if (input.isActive !== undefined) updateData.isActive = input.isActive ? 1 : 0;
-        return db.updateHashtagMonitor(input.id, updateData);
+        return db.updateHashtagMonitor(input.id, ctx.user.id, updateData);
       }),
     
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => db.deleteHashtagMonitor(input.id)),
+      .mutation(({ ctx, input }) => db.deleteHashtagMonitor(input.id, ctx.user.id)),
   }),
 
   // ========== AI Comment Generation ==========
@@ -203,8 +205,8 @@ Rules:
         id: z.number(),
         feedback: z.enum(['good', 'bad', 'neutral']),
       }))
-      .mutation(({ input }) => 
-        db.updateAICommentFeedback(input.id, input.feedback)
+      .mutation(({ ctx, input }) => 
+        db.updateAICommentFeedback(input.id, ctx.user.id, input.feedback)
       ),
   }),
 });

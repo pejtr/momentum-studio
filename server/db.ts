@@ -551,10 +551,10 @@ export async function getEngagementCampaigns(userId: number) {
   return db.select().from(engagementCampaigns).where(eq(engagementCampaigns.userId, userId)).orderBy(desc(engagementCampaigns.createdAt));
 }
 
-export async function getEngagementCampaignById(id: number) {
+export async function getEngagementCampaignById(id: number, userId: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(engagementCampaigns).where(eq(engagementCampaigns.id, id)).limit(1);
+  const result = await db.select().from(engagementCampaigns).where(and(eq(engagementCampaigns.id, id), eq(engagementCampaigns.userId, userId))).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -565,37 +565,44 @@ export async function createEngagementCampaign(data: InsertEngagementCampaign) {
   return { id: Number(result[0].insertId) };
 }
 
-export async function updateEngagementCampaign(id: number, data: Partial<InsertEngagementCampaign>) {
+export async function updateEngagementCampaign(id: number, userId: number, data: Partial<InsertEngagementCampaign>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(engagementCampaigns).set(data).where(eq(engagementCampaigns.id, id));
-  return getEngagementCampaignById(id);
+  await db.update(engagementCampaigns).set(data).where(and(eq(engagementCampaigns.id, id), eq(engagementCampaigns.userId, userId)));
+  return getEngagementCampaignById(id, userId);
 }
 
-export async function deleteEngagementCampaign(id: number) {
+export async function deleteEngagementCampaign(id: number, userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.delete(engagementCampaigns).where(eq(engagementCampaigns.id, id));
+  await db.delete(engagementCampaigns).where(and(eq(engagementCampaigns.id, id), eq(engagementCampaigns.userId, userId)));
 }
 
 // ========== Engagement Actions ==========
-export async function getEngagementActions(campaignId: number) {
+export async function getEngagementActions(campaignId: number, userId: number) {
   const db = await getDb();
   if (!db) return [];
+  const campaign = await getEngagementCampaignById(campaignId, userId);
+  if (!campaign) return [];
   return db.select().from(engagementActions).where(eq(engagementActions.campaignId, campaignId)).orderBy(desc(engagementActions.createdAt));
 }
 
-export async function createEngagementAction(data: InsertEngagementAction) {
+export async function createEngagementAction(data: InsertEngagementAction, userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const campaign = await getEngagementCampaignById(data.campaignId, userId);
+  if (!campaign) return undefined;
   const result = await db.insert(engagementActions).values(data);
   return { id: Number(result[0].insertId) };
 }
 
-export async function updateEngagementAction(id: number, data: Partial<InsertEngagementAction>) {
+export async function updateEngagementAction(id: number, userId: number, data: Partial<InsertEngagementAction>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const [action] = await db.select().from(engagementActions).where(eq(engagementActions.id, id)).limit(1);
+  if (!action || !(await getEngagementCampaignById(action.campaignId, userId))) return undefined;
   await db.update(engagementActions).set(data).where(eq(engagementActions.id, id));
+  return { id };
 }
 
 // ========== Hashtag Monitors ==========
@@ -605,10 +612,10 @@ export async function getHashtagMonitors(userId: number) {
   return db.select().from(hashtagMonitors).where(eq(hashtagMonitors.userId, userId)).orderBy(desc(hashtagMonitors.createdAt));
 }
 
-export async function getHashtagMonitorById(id: number) {
+export async function getHashtagMonitorById(id: number, userId: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(hashtagMonitors).where(eq(hashtagMonitors.id, id)).limit(1);
+  const result = await db.select().from(hashtagMonitors).where(and(eq(hashtagMonitors.id, id), eq(hashtagMonitors.userId, userId))).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -619,17 +626,17 @@ export async function createHashtagMonitor(data: InsertHashtagMonitor) {
   return { id: Number(result[0].insertId) };
 }
 
-export async function updateHashtagMonitor(id: number, data: Partial<InsertHashtagMonitor>) {
+export async function updateHashtagMonitor(id: number, userId: number, data: Partial<InsertHashtagMonitor>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(hashtagMonitors).set(data).where(eq(hashtagMonitors.id, id));
-  return getHashtagMonitorById(id);
+  await db.update(hashtagMonitors).set(data).where(and(eq(hashtagMonitors.id, id), eq(hashtagMonitors.userId, userId)));
+  return getHashtagMonitorById(id, userId);
 }
 
-export async function deleteHashtagMonitor(id: number) {
+export async function deleteHashtagMonitor(id: number, userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.delete(hashtagMonitors).where(eq(hashtagMonitors.id, id));
+  await db.delete(hashtagMonitors).where(and(eq(hashtagMonitors.id, id), eq(hashtagMonitors.userId, userId)));
 }
 
 // ========== AI Comment History ==========
@@ -646,10 +653,10 @@ export async function createAICommentHistory(data: InsertAICommentHistory) {
   return { id: Number(result[0].insertId) };
 }
 
-export async function updateAICommentFeedback(id: number, feedback: string) {
+export async function updateAICommentFeedback(id: number, userId: number, feedback: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(aiCommentHistory).set({ feedback: feedback as any }).where(eq(aiCommentHistory.id, id));
+  await db.update(aiCommentHistory).set({ feedback: feedback as any }).where(and(eq(aiCommentHistory.id, id), eq(aiCommentHistory.userId, userId)));
 }
 
 

@@ -5,7 +5,10 @@ import {
   collaborationSessions,
   containers,
   documentations,
+  engagementActions,
+  engagementCampaigns,
   executions,
+  hashtagMonitors,
   marketplaceTemplates,
   profiles,
   scripts,
@@ -29,6 +32,8 @@ export const TEST_USER_IDS = {
   credits: 990004,
   executionOwnership: 990005,
   creditRateLimit: 990006,
+  engagementOwner: 990008,
+  engagementOther: 990009,
 } as const;
 
 /**
@@ -47,6 +52,9 @@ export async function cleanupTestUserData(userId: number): Promise<void> {
   await db.delete(marketplaceTemplates).where(eq(marketplaceTemplates.creatorId, userId));
 
   await db.delete(documentations).where(eq(documentations.userId, userId));
+  await db.delete(engagementActions).where(eq(engagementActions.userId, userId));
+  await db.delete(engagementCampaigns).where(eq(engagementCampaigns.userId, userId));
+  await db.delete(hashtagMonitors).where(eq(hashtagMonitors.userId, userId));
   await db.delete(collaborationSessions).where(eq(collaborationSessions.userId, userId));
   await db.delete(executions).where(eq(executions.userId, userId));
   await db.delete(containers).where(eq(containers.userId, userId));

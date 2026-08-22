@@ -910,6 +910,13 @@
 - [x] Clamp database list helpers defensively even when called outside tRPC
 - [x] Add regression tests for rejected oversized limits and normal list responses
 
+## Security Hardening: Engagement Ownership
+- [x] Scope campaign get/update/delete by authenticated owner
+- [x] Require campaign ownership for action list/create/update
+- [x] Scope hashtag monitor get/update/delete by authenticated owner
+- [x] Scope AI comment feedback by authenticated owner
+- [x] Add cross-user regression tests for engagement reads and mutations
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
