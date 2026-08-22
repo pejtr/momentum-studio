@@ -39,6 +39,12 @@ const engagementActionConfigSchema = z.object({
   delayBetweenActions: z.number().int().min(0).max(86_400).optional(),
 }).strict();
 
+const positiveResourceIdSchema = z.number().int().positive();
+const engagementActionTypeSchema = z.enum(['like', 'comment', 'follow', 'view_story', 'send_dm']);
+const monitorActionSchema = z.array(z.enum(['like', 'comment', 'follow'])).max(3);
+const engagementTemplateSchema = z.array(z.string().trim().min(1).max(5_000)).max(20);
+const actionsPerDaySchema = z.number().int().min(1).max(10_000);
+
 export const engagementRouter = router({
   // ========== Engagement Campaigns ==========
   campaigns: router({
@@ -84,18 +90,18 @@ export const engagementRouter = router({
   // ========== Engagement Actions ==========
   actions: router({
     list: protectedProcedure
-      .input(z.object({ campaignId: z.number() }))
+      .input(z.object({ campaignId: positiveResourceIdSchema }))
       .query(({ ctx, input }) => db.getEngagementActions(input.campaignId, ctx.user.id)),
     
     create: protectedProcedure
       .input(z.object({
-        campaignId: z.number(),
+        campaignId: positiveResourceIdSchema,
         platform: z.enum(['instagram', 'tiktok', 'facebook', 'youtube', 'twitter']),
-        actionType: z.enum(['like', 'comment', 'follow', 'view_story', 'send_dm']),
-        targetUrl: z.string().optional(),
-        targetUsername: z.string().optional(),
-        targetPostId: z.string().optional(),
-        content: z.string().optional(),
+        actionType: engagementActionTypeSchema,
+        targetUrl: z.string().url().max(2_000).optional(),
+        targetUsername: z.string().trim().min(1).max(100).optional(),
+        targetPostId: z.string().trim().min(1).max(255).optional(),
+        content: z.string().trim().min(1).max(5_000).optional(),
       }))
       .mutation(({ ctx, input }) => 
         db.createEngagementAction({ ...input, userId: ctx.user.id }, ctx.user.id)
@@ -103,9 +109,9 @@ export const engagementRouter = router({
     
     update: protectedProcedure
       .input(z.object({
-        id: z.number(),
+        id: positiveResourceIdSchema,
         status: z.enum(['pending', 'completed', 'failed', 'skipped']),
-        error: z.string().optional(),
+        error: z.string().trim().min(1).max(5_000).optional(),
         executedAt: z.date().optional(),
       }))
       .mutation(({ ctx, input }) => {
@@ -119,18 +125,18 @@ export const engagementRouter = router({
     list: protectedProcedure.query(({ ctx }) => db.getHashtagMonitors(ctx.user.id)),
     
     get: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: positiveResourceIdSchema }))
       .query(({ ctx, input }) => db.getHashtagMonitorById(input.id, ctx.user.id)),
     
     create: protectedProcedure
       .input(z.object({
         platform: z.enum(['instagram', 'tiktok', 'facebook', 'youtube', 'twitter']),
-        hashtag: z.string().min(1).max(255),
+        hashtag: z.string().trim().min(1).max(255),
         autoEngage: z.boolean().optional(),
-        engagementActions: z.array(z.enum(['like', 'comment', 'follow'])).optional(),
-        commentTemplates: z.array(z.string()).optional(),
+        engagementActions: monitorActionSchema.optional(),
+        commentTemplates: engagementTemplateSchema.optional(),
         useAI: z.boolean().optional(),
-        maxActionsPerDay: z.number().optional(),
+        maxActionsPerDay: actionsPerDaySchema.optional(),
       }))
       .mutation(({ ctx, input }) => {
         const data = {
@@ -144,12 +150,12 @@ export const engagementRouter = router({
     
     update: protectedProcedure
       .input(z.object({
-        id: z.number(),
+        id: positiveResourceIdSchema,
         autoEngage: z.boolean().optional(),
-        engagementActions: z.array(z.enum(['like', 'comment', 'follow'])).optional(),
-        commentTemplates: z.array(z.string()).optional(),
+        engagementActions: monitorActionSchema.optional(),
+        commentTemplates: engagementTemplateSchema.optional(),
         useAI: z.boolean().optional(),
-        maxActionsPerDay: z.number().optional(),
+        maxActionsPerDay: actionsPerDaySchema.optional(),
         isActive: z.boolean().optional(),
       }))
       .mutation(({ ctx, input }) => {
@@ -161,7 +167,7 @@ export const engagementRouter = router({
       }),
     
     delete: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: positiveResourceIdSchema }))
       .mutation(({ ctx, input }) => db.deleteHashtagMonitor(input.id, ctx.user.id)),
   }),
 

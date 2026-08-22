@@ -1000,6 +1000,11 @@
 - [x] Validate document list and generation resource identifiers
 - [x] Add deterministic documentation validation-boundary regression coverage
 
+## Security Hardening: Engagement Action Input Bounds
+- [x] Bound action targets, content, errors and resource identifiers
+- [x] Bound hashtag monitor templates, action sets and daily action limits
+- [x] Add deterministic action and monitor validation-boundary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
