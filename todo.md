@@ -995,6 +995,11 @@
 - [x] Bound marketplace category filters and review comments
 - [x] Add deterministic marketplace validation-boundary regression coverage
 
+## Security Hardening: Documentation Input Bounds
+- [x] Bound documentation titles, edited content and document resource identifiers
+- [x] Validate document list and generation resource identifiers
+- [x] Add deterministic documentation validation-boundary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

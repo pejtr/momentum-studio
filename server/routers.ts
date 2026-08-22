@@ -76,6 +76,8 @@ const profileCredentialsSchema = z.record(
 ).refine((credentials) => Object.keys(credentials).length <= 50, {
   message: "Credential mapa může obsahovat nejvýše 50 položek.",
 });
+const documentationTitleSchema = z.string().trim().min(1).max(255);
+const documentationContentSchema = z.string().max(16_000);
 
 export const appRouter = router({
   system: systemRouter,
@@ -296,10 +298,10 @@ export const appRouter = router({
 
   // Documentation
   documentation: router({
-    list: protectedProcedure.input(z.object({ scriptId: z.number() })).query(({ ctx, input }) => db.getDocumentationsByScript(input.scriptId, ctx.user.id)),
+    list: protectedProcedure.input(z.object({ scriptId: z.number().int().positive() })).query(({ ctx, input }) => db.getDocumentationsByScript(input.scriptId, ctx.user.id)),
     generate: protectedProcedure.input(z.object({
-      scriptId: z.number(),
-      title: z.string().min(1).max(255),
+      scriptId: z.number().int().positive(),
+      title: documentationTitleSchema,
       format: z.enum(["markdown", "html", "pdf"]).optional(),
     })).mutation(async ({ ctx, input }) => {
       const script = await db.getScriptById(input.scriptId, ctx.user.id);
@@ -317,9 +319,9 @@ export const appRouter = router({
       });
     }),
     update: protectedProcedure.input(z.object({
-      id: z.number(),
-      title: z.string().optional(),
-      content: z.string().optional(),
+      id: z.number().int().positive(),
+      title: documentationTitleSchema.optional(),
+      content: documentationContentSchema.optional(),
     })).mutation(({ ctx, input }) => {
       const { id, ...data } = input;
       return db.updateDocumentation(id, ctx.user.id, data);
