@@ -560,3 +560,31 @@ export const hermesMemory = mysqlTable("hermes_memory", {
 
 export type HermesMemory = typeof hermesMemory.$inferSelect;
 export type InsertHermesMemory = typeof hermesMemory.$inferInsert;
+
+// ========== AI Credit Usage ==========
+// Monthly allocation is server-owned. The client can only read its own status.
+export const aiCreditAccounts = mysqlTable("ai_credit_accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull().unique(),
+  monthlyAllowance: int("monthly_allowance").default(30).notNull(),
+  usedCredits: int("used_credits").default(0).notNull(),
+  periodStart: timestamp("period_start").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AiCreditAccount = typeof aiCreditAccounts.$inferSelect;
+export type InsertAiCreditAccount = typeof aiCreditAccounts.$inferInsert;
+
+export const aiCreditUsage = mysqlTable("ai_credit_usage", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  accountId: int("account_id").notNull(),
+  tool: mysqlEnum("tool", ["hermes", "pdf_summary", "test_case_generation", "xml_validation"]).notNull(),
+  credits: int("credits").default(1).notNull(),
+  periodStart: timestamp("period_start").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type AiCreditUsage = typeof aiCreditUsage.$inferSelect;
+export type InsertAiCreditUsage = typeof aiCreditUsage.$inferInsert;

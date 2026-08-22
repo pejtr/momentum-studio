@@ -4,6 +4,7 @@ import { getDb } from "./db";
 import { hermesMessages, hermesMemory } from "../drizzle/schema";
 import { and, eq, desc } from "drizzle-orm";
 import { sdk } from "./_core/sdk";
+import { consumeAiCredit } from "./aiCredits";
 
 // ─── HERMES System Prompt (same as in hermes.ts) ─────────────────────────────
 const HERMES_SYSTEM_PROMPT = `You are HERMES — the Core AI Agent of OMNIMATRIX QA Automation Platform.
@@ -59,6 +60,21 @@ hermesStreamRouter.post("/api/hermes/stream", async (req: Request, res: Response
 
   if (!message || !sessionId) {
     res.status(400).json({ error: "message and sessionId are required" });
+    return;
+  }
+
+  try {
+    const consumption = await consumeAiCredit(userId, "hermes");
+    if (!consumption.allowed) {
+      res.status(429).json({
+        error: "Měsíční limit AI kreditů byl vyčerpán. Další kredity budou dostupné při příštím obnovení období.",
+        credits: consumption.status,
+      });
+      return;
+    }
+  } catch (error) {
+    console.error("[HERMES SSE] Credit accounting error:", error);
+    res.status(503).json({ error: "AI kreditní služba je dočasně nedostupná." });
     return;
   }
 

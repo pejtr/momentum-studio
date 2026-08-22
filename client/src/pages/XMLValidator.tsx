@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AICreditStatus } from "@/components/AICreditStatus";
 import { Textarea } from "@/components/ui/textarea";
 import { Code2, Loader2, Sparkles, Copy, CheckCircle, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
@@ -56,10 +57,12 @@ export default function XMLValidator() {
   const [xsdContent, setXsdContent] = useState("");
   const [showXsd, setShowXsd] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const utils = trpc.useUtils();
 
   const validateMutation = trpc.ai.validateXML.useMutation({
     onSuccess: (data) => {
       setResult(data.result);
+      utils.ai.credits.setData(undefined, data.credits);
       toast.success("Validace dokončena!");
     },
     onError: (err) => {
@@ -95,7 +98,7 @@ export default function XMLValidator() {
   return (
     <div className="ai-lcars-page space-y-6 p-1">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Code2 className="h-6 w-6 text-primary" />
@@ -105,7 +108,8 @@ export default function XMLValidator() {
             Validujte XML strukturu a schéma s AI analýzou a QA doporučeními
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <AICreditStatus />
           <Button variant="outline" size="sm" onClick={loadSample}>
             Načíst ukázku
           </Button>

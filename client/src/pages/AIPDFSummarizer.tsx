@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AICreditStatus } from "@/components/AICreditStatus";
 import { FileText, Upload, Loader2, Sparkles, Copy, Download, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,10 +13,12 @@ export default function AIPDFSummarizer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const utils = trpc.useUtils();
 
   const summarizeMutation = trpc.ai.summarizePDF.useMutation({
     onSuccess: (data) => {
       setSummary(data.summary);
+      utils.ai.credits.setData(undefined, data.credits);
       setIsLoading(false);
       toast.success("Shrnutí vygenerováno!");
     },
@@ -71,7 +74,7 @@ export default function AIPDFSummarizer() {
   return (
     <div className="ai-lcars-page space-y-6 p-1">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <FileText className="h-6 w-6 text-primary" />
@@ -81,10 +84,13 @@ export default function AIPDFSummarizer() {
             Nahrajte QA dokumentaci nebo testovací specifikace a získejte strukturované shrnutí
           </p>
         </div>
-        <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10">
-          <Sparkles className="h-3 w-3 mr-1" />
-          AI Powered
-        </Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <AICreditStatus />
+          <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10">
+            <Sparkles className="h-3 w-3 mr-1" />
+            AI Powered
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -13,6 +13,8 @@ import {
   templateReviews,
   workspaceMembers,
   workspaces,
+  aiCreditAccounts,
+  aiCreditUsage,
 } from "../drizzle/schema";
 import { getDb } from "./db";
 
@@ -24,6 +26,7 @@ export const TEST_USER_IDS = {
   features: 990001,
   newFeatures: 990002,
   blog: 990003,
+  credits: 990004,
 } as const;
 
 /**
@@ -33,6 +36,9 @@ export const TEST_USER_IDS = {
 export async function cleanupTestUserData(userId: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
+
+  await db.delete(aiCreditUsage).where(eq(aiCreditUsage.userId, userId));
+  await db.delete(aiCreditAccounts).where(eq(aiCreditAccounts.userId, userId));
 
   await db.delete(templatePurchases).where(eq(templatePurchases.userId, userId));
   await db.delete(templateReviews).where(eq(templateReviews.userId, userId));

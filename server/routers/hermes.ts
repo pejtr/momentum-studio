@@ -5,6 +5,7 @@ import { hermesMessages, hermesMemory } from "../../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { invokeLLM } from "../_core/llm";
 import { TRPCError } from "@trpc/server";
+import { consumeAiCredit } from "../aiCredits";
 
 // ─── HERMES System Prompt ────────────────────────────────────────────────────
 const HERMES_SYSTEM_PROMPT = `You are HERMES — the Core AI Agent of OMNIMATRIX QA Automation Platform.
@@ -226,6 +227,13 @@ export const hermesRouter = router({
     }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user.id;
+      const consumption = await consumeAiCredit(userId, "hermes");
+      if (!consumption.allowed) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Měsíční limit AI kreditů byl vyčerpán. Další kredity budou dostupné při příštím obnovení období.",
+        });
+      }
 
       // Load memory context
       const dbConn = await getDb();

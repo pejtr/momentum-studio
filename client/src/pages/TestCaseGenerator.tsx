@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AICreditStatus } from "@/components/AICreditStatus";
 import { FlaskConical, Loader2, Sparkles, Copy, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,10 +43,12 @@ export default function TestCaseGenerator() {
   const [testType, setTestType] = useState<"functional" | "regression" | "smoke" | "e2e" | "api">("functional");
   const [format, setFormat] = useState<"gherkin" | "table" | "markdown">("gherkin");
   const [result, setResult] = useState<string | null>(null);
+  const utils = trpc.useUtils();
 
   const generateMutation = trpc.ai.generateTestCases.useMutation({
     onSuccess: (data) => {
       setResult(data.testCases);
+      utils.ai.credits.setData(undefined, data.credits);
       toast.success("Testovací případy vygenerovány!");
     },
     onError: (err) => {
@@ -71,7 +74,7 @@ export default function TestCaseGenerator() {
   return (
     <div className="ai-lcars-page space-y-6 p-1">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <FlaskConical className="h-6 w-6 text-primary" />
@@ -81,10 +84,13 @@ export default function TestCaseGenerator() {
             Popište funkcionalitu a AI vygeneruje kompletní sadu testovacích případů
           </p>
         </div>
-        <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10">
-          <Sparkles className="h-3 w-3 mr-1" />
-          AI Powered
-        </Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <AICreditStatus />
+          <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10">
+            <Sparkles className="h-3 w-3 mr-1" />
+            AI Powered
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

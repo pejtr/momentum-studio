@@ -941,7 +941,13 @@
 - [ ] AI Test Case Generator - input feature/spec text, generate structured test cases
 - [ ] AI XML Validator - paste/upload XML, validate against XSD with AI insights
 - [ ] Add all three AI tools to sidebar navigation under "AI Generátor" section
-- [ ] Credits model UI (show remaining AI credits per tool)
+- [x] Credits model UI (show remaining AI credits per tool)
+
+## Feature 80A: AI Credit Usage Layer
+- [x] Add per-user monthly AI credit allocation and immutable usage ledger
+- [x] Enforce credit availability server-side before AI calls and return a safe limit error
+- [x] Show remaining monthly credit status in the Czech LCARS AI tool headers
+- [x] Add isolated authorization and exhaustion tests for the credit API
 
 ## Feature HERMES: Core AI Agent
 - [x] DB schema: hermes_sessions, hermes_messages, hermes_memory tables

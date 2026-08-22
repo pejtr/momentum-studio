@@ -4,6 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { AICreditStatus } from "@/components/AICreditStatus";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Streamdown } from "streamdown";
@@ -464,6 +465,7 @@ export default function HermesPage() {
         setIsStreaming(false);
         utils.hermes.getSessions.invalidate();
         utils.hermes.getHistory.invalidate({ sessionId, limit: 50 });
+        utils.ai.credits.invalidate();
       },
       // onError
       (err) => {
@@ -522,6 +524,7 @@ export default function HermesPage() {
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <AICreditStatus className="hidden md:flex" />
           <Button
             variant="ghost"
             size="sm"

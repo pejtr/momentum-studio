@@ -3,6 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import { getHardwareSettings, saveHardwareSettings } from "./db";
 import { broadcastExecutionNotification } from "./_core/websocket";
@@ -11,6 +12,18 @@ import { blogRouter } from "./blogRouter";
 import { dockerRouter } from "./dockerRouter";
 import { engagementRouter } from "./engagementRouter";
 import { hermesRouter } from "./routers/hermes";
+import { consumeAiCredit, getAiCreditStatus, type AiCreditTool } from "./aiCredits";
+
+async function requireAiCredit(userId: number, tool: AiCreditTool) {
+  const consumption = await consumeAiCredit(userId, tool);
+  if (!consumption.allowed) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "Měsíční limit AI kreditů byl vyčerpán. Další kredity budou dostupné při příštím obnovení období.",
+    });
+  }
+  return consumption.status;
+}
 
 const scriptNodeSchema = z.object({
   id: z.string(),
@@ -401,6 +414,7 @@ export const appRouter = router({
 
   // AI Workflow Generator
   ai: router({
+    credits: protectedProcedure.query(({ ctx }) => getAiCreditStatus(ctx.user.id)),
     chat: protectedProcedure.input(z.object({
       messages: z.array(z.object({
         role: z.enum(['user', 'assistant', 'system']),
@@ -574,7 +588,8 @@ Example:
         filename: z.string(),
         fileBase64: z.string(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
+        const credits = await requireAiCredit(ctx.user.id, "pdf_summary");
         const { invokeLLM } = await import('./_core/llm');
         const response = await invokeLLM({
           messages: [
@@ -608,7 +623,7 @@ Buď konkrétní a strukturovaný. Použij markdown formátování.`,
           ],
         });
         const summary = response.choices?.[0]?.message?.content ?? 'Nepodařilo se vygenerovat shrnutí.';
-        return { summary: typeof summary === 'string' ? summary : JSON.stringify(summary) };
+        return { summary: typeof summary === 'string' ? summary : JSON.stringify(summary), credits };
       }),
 
     // Test Case Generator
@@ -618,7 +633,8 @@ Buď konkrétní a strukturovaný. Použij markdown formátování.`,
         testType: z.enum(['functional', 'regression', 'smoke', 'e2e', 'api']).default('functional'),
         format: z.enum(['gherkin', 'table', 'markdown']).default('gherkin'),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
+        const credits = await requireAiCredit(ctx.user.id, "test_case_generation");
         const { invokeLLM } = await import('./_core/llm');
         const formatLabel = input.format === 'gherkin' ? 'Gherkin (Given/When/Then)' : input.format === 'table' ? 'Tabulka (ID, Název, Kroky, Očekávaný výsledek)' : 'Markdown seznam';
         const response = await invokeLLM({
@@ -637,7 +653,7 @@ Include: positive tests, negative tests, edge cases, boundary values.`,
           ],
         });
         const testCases = response.choices?.[0]?.message?.content ?? 'Nepodařilo se vygenerovat testovací případy.';
-        return { testCases: typeof testCases === 'string' ? testCases : JSON.stringify(testCases) };
+        return { testCases: typeof testCases === 'string' ? testCases : JSON.stringify(testCases), credits };
       }),
 
     // XML Validator with AI insights
@@ -646,7 +662,8 @@ Include: positive tests, negative tests, edge cases, boundary values.`,
         xmlContent: z.string().min(1).max(100000),
         xsdContent: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
+        const credits = await requireAiCredit(ctx.user.id, "xml_validation");
         const { invokeLLM } = await import('./_core/llm');
         const xsdNote = input.xsdContent ? ' oproti přiloženému XSD schématu' : '';
         const xsdBlock = input.xsdContent ? `\n\nXSD Schema:\n\`\`\`xml\n${input.xsdContent}\n\`\`\`` : '';
@@ -670,7 +687,7 @@ Odpovídej v češtině, buď konkrétní a technický.`,
           ],
         });
         const result = response.choices?.[0]?.message?.content ?? 'Nepodařilo se provést validaci.';
-        return { result: typeof result === 'string' ? result : JSON.stringify(result) };
+        return { result: typeof result === 'string' ? result : JSON.stringify(result), credits };
       }),
   }),
 
