@@ -406,6 +406,99 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
+   AI WORKSPACES — LCARS NEON GLOW
+══════════════════════════════════════════════════════════════ */
+.ai-lcars-page,
+.hermes-lcars {
+  color: #d8efff;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.ai-lcars-page .bg-card {
+  background: linear-gradient(135deg, rgba(10, 24, 40, 0.96), rgba(5, 12, 24, 0.98)) !important;
+  border: 1px solid rgba(77, 184, 255, 0.24) !important;
+  border-left: 3px solid #ff9900 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 20px rgba(77, 184, 255, 0.07), inset 0 0 30px rgba(0, 0, 0, 0.28) !important;
+}
+
+.ai-lcars-page h1 {
+  color: #ff9900 !important;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 12px rgba(255, 153, 0, 0.65), 0 0 30px rgba(255, 153, 0, 0.24);
+}
+
+.ai-lcars-page .text-muted-foreground {
+  color: #8bcaff !important;
+}
+
+.ai-lcars-page .text-foreground {
+  color: #d8efff !important;
+}
+
+.ai-lcars-page .bg-background,
+.ai-lcars-page .bg-secondary\/30 {
+  background: rgba(3, 12, 24, 0.82) !important;
+}
+
+.ai-lcars-page textarea,
+.ai-lcars-page [data-slot="select-trigger"],
+.ai-lcars-page [data-slot="select-content"] {
+  background: rgba(3, 12, 24, 0.9) !important;
+  border-color: rgba(77, 184, 255, 0.32) !important;
+  color: #d8efff !important;
+  box-shadow: inset 0 0 12px rgba(77, 184, 255, 0.04);
+}
+
+.ai-lcars-page textarea:focus,
+.ai-lcars-page [data-slot="select-trigger"]:focus {
+  border-color: #ff9900 !important;
+  box-shadow: 0 0 0 1px rgba(255, 153, 0, 0.35), 0 0 16px rgba(255, 153, 0, 0.12) !important;
+}
+
+.ai-lcars-page .lcars-ai-action {
+  background: linear-gradient(135deg, #ff9900, #ffcc00) !important;
+  border: 0 !important;
+  color: #040810 !important;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 0 16px rgba(255, 153, 0, 0.42) !important;
+}
+
+.ai-lcars-page .lcars-ai-output {
+  background: rgba(3, 12, 24, 0.82) !important;
+  border: 1px solid rgba(77, 184, 255, 0.24) !important;
+  color: #d8efff !important;
+  border-radius: 3px !important;
+}
+
+.hermes-lcars {
+  background: radial-gradient(circle at 70% 12%, rgba(77, 184, 255, 0.08), transparent 28%), #040810 !important;
+}
+
+.hermes-lcars [class*="text-[#00ff41]"] {
+  color: #ff9900 !important;
+  text-shadow: 0 0 8px rgba(255, 153, 0, 0.5);
+}
+
+.hermes-lcars [class*="border-[#00ff41]"] {
+  border-color: rgba(77, 184, 255, 0.32) !important;
+}
+
+.hermes-lcars [class*="bg-[#001a00]"],
+.hermes-lcars [class*="bg-[#000a00]"] {
+  background-color: rgba(3, 12, 24, 0.9) !important;
+}
+
+.hermes-lcars [class*="shadow-[0_0_6px_#00ff41]"] {
+  box-shadow: 0 0 8px rgba(255, 153, 0, 0.75) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
    ANIMATIONS
 ══════════════════════════════════════════════════════════════ */
 @keyframes warp-ambient {

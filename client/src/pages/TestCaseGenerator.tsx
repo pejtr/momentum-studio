@@ -69,7 +69,7 @@ export default function TestCaseGenerator() {
   };
 
   return (
-    <div className="space-y-6 p-1">
+    <div className="ai-lcars-page space-y-6 p-1">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -138,7 +138,7 @@ export default function TestCaseGenerator() {
               </div>
 
               <Button
-                className="w-full"
+                className="lcars-ai-action w-full"
                 disabled={featureDescription.length < 10 || generateMutation.isPending}
                 onClick={handleGenerate}
               >
@@ -204,7 +204,7 @@ export default function TestCaseGenerator() {
                 <p className="text-xs text-muted-foreground/60">Může to trvat 10–30 sekund</p>
               </div>
             ) : result ? (
-              <div className="bg-secondary/30 rounded-lg p-4 text-sm text-foreground leading-relaxed whitespace-pre-wrap font-mono border border-border max-h-[600px] overflow-y-auto">
+              <div className="lcars-ai-output p-4 text-sm leading-relaxed whitespace-pre-wrap font-mono border max-h-[600px] overflow-y-auto">
                 {result}
               </div>
             ) : (

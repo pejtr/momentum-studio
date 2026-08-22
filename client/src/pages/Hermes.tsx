@@ -505,7 +505,7 @@ export default function HermesPage() {
   const showWelcome = messages.length === 0 && !isStreaming;
 
   return (
-    <div className="flex flex-col h-full bg-[#000a00] text-[#00ff41]" style={{ fontFamily: "'Share Tech Mono', 'Courier New', monospace" }}>
+    <div className="hermes-lcars flex flex-col h-full" style={{ fontFamily: "'Rajdhani', 'Share Tech Mono', sans-serif" }}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[#00ff41]/30 bg-black/60">
         <div className="flex items-center gap-2">
