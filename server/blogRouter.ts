@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure, protectedProcedure } from "./_core/trpc";
+import { adminProcedure, router, publicProcedure, protectedProcedure } from "./_core/trpc";
 import * as db from "./db";
 
 export const blogRouter = router({
@@ -103,7 +103,7 @@ export const blogRouter = router({
   }),
 
   // Category management
-  createCategory: protectedProcedure.input(z.object({
+  createCategory: adminProcedure.input(z.object({
     name: z.string(),
     slug: z.string(),
     description: z.string().optional(),
@@ -112,7 +112,7 @@ export const blogRouter = router({
   }),
 
   // Tag management
-  createTag: protectedProcedure.input(z.object({
+  createTag: adminProcedure.input(z.object({
     name: z.string(),
     slug: z.string(),
   })).mutation(({ input }) => {

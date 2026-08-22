@@ -923,6 +923,11 @@
 - [x] Restrict comment moderation and deletion to the author of the parent post
 - [x] Add cross-user and unpublished-content regression tests
 
+## Security Hardening: Blog Taxonomy Integrity
+- [x] Restrict category and tag creation to administrators
+- [x] Verify anonymous and standard-user callers cannot mutate taxonomy
+- [x] Preserve public category and tag reads with deterministic regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
