@@ -248,8 +248,8 @@ export const appRouter = router({
   // Marketplace
   marketplace: router({
     list: publicProcedure.input(z.object({
-      category: z.string().optional(),
-      platform: z.string().optional(),
+      category: z.string().trim().min(1).max(100).optional(),
+      platform: z.enum(["twitter", "instagram", "facebook", "tiktok", "youtube", "multi"]).optional(),
       limit: z.number().int().min(1).max(100).optional(),
       sortBy: z.enum(["downloads", "rating", "recent", "price"]).optional(),
       minRating: z.number().min(1).max(5).optional(),
@@ -259,13 +259,13 @@ export const appRouter = router({
       db.getMarketplaceTemplateForCreator(input.id, ctx.user.id)
     ),
     create: protectedProcedure.input(z.object({
-      name: z.string().min(1).max(255),
-      description: z.string().optional(),
-      category: z.string().optional(),
+      name: z.string().trim().min(1).max(255),
+      description: z.string().trim().max(10_000).optional(),
+      category: z.string().trim().min(1).max(100).optional(),
       platform: z.enum(["twitter", "instagram", "facebook", "tiktok", "youtube", "multi"]),
-      nodes: z.array(scriptNodeSchema).optional(),
-      edges: z.array(scriptEdgeSchema).optional(),
-      price: z.number().optional(),
+      nodes: scriptNodesSchema.optional(),
+      edges: scriptEdgesSchema.optional(),
+      price: z.number().int().min(0).max(1_000_000).optional(),
     })).mutation(({ ctx, input }) => db.createMarketplaceTemplate({ ...input, creatorId: ctx.user.id, nodes: input.nodes || [], edges: input.edges || [] })),
     publish: protectedProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => 
       db.updateMarketplaceTemplate(input.id, ctx.user.id, { status: "published" })
@@ -279,9 +279,9 @@ export const appRouter = router({
     }),
     getReviews: publicProcedure.input(z.object({ templateId: z.number() })).query(({ input }) => db.getTemplateReviews(input.templateId)),
     addReview: protectedProcedure.input(z.object({
-      templateId: z.number(),
-      rating: z.number().min(1).max(5),
-      comment: z.string().optional(),
+      templateId: z.number().int().positive(),
+      rating: z.number().int().min(1).max(5),
+      comment: z.string().trim().min(1).max(5_000).optional(),
     })).mutation(async ({ ctx, input }) => {
       const review = await db.createEligibleTemplateReview({ ...input, userId: ctx.user.id });
       if (!review) {

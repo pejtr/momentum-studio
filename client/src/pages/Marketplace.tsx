@@ -48,7 +48,9 @@ export default function Marketplace() {
 
   const { data: templates } = trpc.marketplace.list.useQuery({
     category: selectedCategory === "all" ? undefined : selectedCategory,
-    platform: selectedPlatform === "all" ? undefined : selectedPlatform,
+    platform: selectedPlatform === "all"
+      ? undefined
+      : selectedPlatform as "twitter" | "instagram" | "facebook" | "tiktok" | "youtube" | "multi",
     limit: 50,
   });
 

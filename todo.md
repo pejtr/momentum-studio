@@ -990,6 +990,11 @@
 - [x] Cap graph node and edge counts on script create and update
 - [x] Add deterministic script graph validation-boundary regression coverage
 
+## Security Hardening: Marketplace Input Bounds
+- [x] Bound marketplace template metadata, graph content and price inputs
+- [x] Bound marketplace category filters and review comments
+- [x] Add deterministic marketplace validation-boundary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
