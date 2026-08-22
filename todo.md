@@ -950,6 +950,11 @@
 - [x] Guard direct Docker route access with a clear Czech access-denied state
 - [x] Add deterministic role-decision regression coverage
 
+## Security Hardening: Blog Input Bounds
+- [x] Bound titles, slugs, article content and SEO fields for blog write procedures
+- [x] Bound comments and taxonomy inputs and validate slug structure
+- [x] Add deterministic validation-boundary regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

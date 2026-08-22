@@ -2,12 +2,23 @@ import { z } from "zod";
 import { adminProcedure, router, publicProcedure, protectedProcedure } from "./_core/trpc";
 import * as db from "./db";
 
+const blogSlugSchema = z.string()
+  .min(1)
+  .max(255)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug musí obsahovat malá písmena, číslice a pomlčky.");
+
+const blogTitleSchema = z.string().trim().min(1).max(255);
+const blogContentSchema = z.string().trim().min(1).max(100_000);
+const blogExcerptSchema = z.string().trim().max(1_000);
+const blogCommentSchema = z.string().trim().min(1).max(5_000);
+const taxonomyNameSchema = z.string().trim().min(1).max(100);
+
 export const blogRouter = router({
   // Public procedures
   list: publicProcedure.query(() => db.getBlogPosts("published")),
 
   getBySlug: publicProcedure.input(z.object({
-    slug: z.string(),
+    slug: blogSlugSchema,
   })).query(async ({ input }) => {
     const post = await db.getBlogPostBySlug(input.slug);
     if (post) {
@@ -34,15 +45,15 @@ export const blogRouter = router({
 
   // Protected procedures (require authentication)
   create: protectedProcedure.input(z.object({
-    title: z.string(),
-    slug: z.string(),
-    content: z.string(),
-    excerpt: z.string().optional(),
+    title: blogTitleSchema,
+    slug: blogSlugSchema,
+    content: blogContentSchema,
+    excerpt: blogExcerptSchema.optional(),
     status: z.enum(["draft", "published", "archived"]).optional(),
     publishedAt: z.date().optional(),
-    featuredImage: z.string().optional(),
-    metaDescription: z.string().optional(),
-    keywords: z.string().optional(),
+    featuredImage: z.string().url().max(500).optional(),
+    metaDescription: z.string().trim().max(320).optional(),
+    keywords: z.string().trim().max(1_000).optional(),
   })).mutation(({ ctx, input }) => {
     return db.createBlogPost({
       ...input,
@@ -52,15 +63,15 @@ export const blogRouter = router({
 
   update: protectedProcedure.input(z.object({
     id: z.number(),
-    title: z.string().optional(),
-    slug: z.string().optional(),
-    content: z.string().optional(),
-    excerpt: z.string().optional(),
+    title: blogTitleSchema.optional(),
+    slug: blogSlugSchema.optional(),
+    content: blogContentSchema.optional(),
+    excerpt: blogExcerptSchema.optional(),
     status: z.enum(["draft", "published", "archived"]).optional(),
     publishedAt: z.date().optional(),
-    featuredImage: z.string().optional(),
-    metaDescription: z.string().optional(),
-    keywords: z.string().optional(),
+    featuredImage: z.string().url().max(500).optional(),
+    metaDescription: z.string().trim().max(320).optional(),
+    keywords: z.string().trim().max(1_000).optional(),
   })).mutation(({ ctx, input }) => {
     const { id, ...data } = input;
     return db.updateBlogPost(id, ctx.user.id, data);
@@ -75,7 +86,7 @@ export const blogRouter = router({
   // Comment management
   addComment: protectedProcedure.input(z.object({
     postId: z.number(),
-    content: z.string(),
+    content: blogCommentSchema,
   })).mutation(({ ctx, input }) => {
     return db.createBlogComment({
       ...input,
@@ -104,17 +115,17 @@ export const blogRouter = router({
 
   // Category management
   createCategory: adminProcedure.input(z.object({
-    name: z.string(),
-    slug: z.string(),
-    description: z.string().optional(),
+    name: taxonomyNameSchema,
+    slug: blogSlugSchema.max(100),
+    description: z.string().trim().max(1_000).optional(),
   })).mutation(({ input }) => {
     return db.createBlogCategory(input);
   }),
 
   // Tag management
   createTag: adminProcedure.input(z.object({
-    name: z.string(),
-    slug: z.string(),
+    name: taxonomyNameSchema,
+    slug: blogSlugSchema.max(100),
   })).mutation(({ input }) => {
     return db.createBlogTag(input);
   }),
