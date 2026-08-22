@@ -62,6 +62,7 @@ import { MindMapDialog } from "./MindMapDialog";
 import { MessagingDropdown } from "./MessagingDropdown";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getAccessibleMenuItems } from "@/lib/accessControl";
 import { format } from "date-fns";
 import { Network, Calendar as CalendarIcon } from "lucide-react";
 
@@ -71,7 +72,7 @@ const menuItemDefs = [
   { icon: Users, key: "menu.profiles", path: "/profiles" },
   { icon: Code2, key: "menu.codeGenerator", path: "/codegen" },
   { icon: Circle, key: "menu.recorder", path: "/recorder" },
-  { icon: Container, key: "menu.dockerManager", path: "/docker" },
+  { icon: Container, key: "menu.dockerManager", path: "/docker", requiresAdmin: true },
   { icon: Share2, key: "menu.socialTemplates", path: "/templates" },
   { icon: TestTube, key: "menu.bddIntegration", path: "/bdd" },
   { icon: Monitor, key: "menu.liveMonitor", path: "/monitor" },
@@ -172,7 +173,7 @@ function DashboardLayoutContent({
 }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
-  const menuItems = menuItemDefs.map(item => ({ ...item, label: t(item.key) }));
+  const menuItems = getAccessibleMenuItems(menuItemDefs, user).map(item => ({ ...item, label: t(item.key) }));
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const [mindMapOpen, setMindMapOpen] = useState(false);

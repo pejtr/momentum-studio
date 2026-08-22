@@ -945,6 +945,11 @@
 - [x] Replace Docker upstream error disclosure with safe API responses
 - [x] Add deterministic anonymous and standard-user denial coverage
 
+## Security Hardening: Docker UI Access
+- [x] Hide Docker Manager navigation for non-administrators
+- [x] Guard direct Docker route access with a clear Czech access-denied state
+- [x] Add deterministic role-decision regression coverage
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC
