@@ -7,14 +7,21 @@ import { cleanupTestUserData, TEST_USER_IDS } from "./testDataIsolation";
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
 const TEST_USER_ID = TEST_USER_IDS.newFeatures;
+const EXECUTION_OWNER_TEST_USER_ID = TEST_USER_IDS.executionOwnership;
 
-beforeEach(async () => cleanupTestUserData(TEST_USER_ID));
-afterEach(async () => cleanupTestUserData(TEST_USER_ID));
+beforeEach(async () => {
+  await cleanupTestUserData(TEST_USER_ID);
+  await cleanupTestUserData(EXECUTION_OWNER_TEST_USER_ID);
+});
+afterEach(async () => {
+  await cleanupTestUserData(TEST_USER_ID);
+  await cleanupTestUserData(EXECUTION_OWNER_TEST_USER_ID);
+});
 
-function createAuthContext(): { ctx: TrpcContext } {
+function createAuthContext(userId = TEST_USER_ID): { ctx: TrpcContext } {
   const user: AuthenticatedUser = {
-    id: TEST_USER_ID,
-    openId: "omnimatrix-test-new-features",
+    id: userId,
+    openId: `omnimatrix-test-new-features-${userId}`,
     email: "test@example.com",
     name: "Test User",
     loginMethod: "manus",
@@ -430,5 +437,25 @@ describe("Real-Time Notifications", () => {
     expect(updated.status).toBe("failed");
     expect(updated.error).toBe("Network timeout error");
     expect(updated.completedAt).toBeDefined();
+  });
+
+  it("does not return or update another user's execution", async () => {
+    const ownerCaller = appRouter.createCaller(createAuthContext().ctx);
+    const otherUserCaller = appRouter.createCaller(createAuthContext(EXECUTION_OWNER_TEST_USER_ID).ctx);
+
+    const script = await ownerCaller.scripts.create({
+      name: "Owner Execution Isolation Test",
+      description: "Execution must remain invisible to another user after an update attempt.",
+    });
+    const execution = await ownerCaller.executions.create({ scriptId: script.id, stepsTotal: 1 });
+
+    const result = await otherUserCaller.executions.updateStatus({
+      id: execution.id,
+      status: "completed",
+    });
+
+    expect(result).toBeUndefined();
+    const ownerExecutions = await ownerCaller.executions.list();
+    expect(ownerExecutions.find((item) => item.id === execution.id)).toMatchObject({ status: "queued" });
   });
 });

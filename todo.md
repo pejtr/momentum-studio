@@ -872,6 +872,11 @@
 - [x] Return a safe JSON 413 response for oversized API requests
 - [x] Add deterministic tests for oversized-payload error handling
 
+## Security Hardening: Execution Ownership
+- [x] Scope execution update readback by both execution ID and authenticated owner
+- [x] Return no execution record and send no notification after a cross-user update attempt
+- [x] Add regression test for cross-user execution status update
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

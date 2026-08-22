@@ -158,7 +158,11 @@ export async function updateExecution(id: number, userId: number, data: Partial<
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(executions).set(data).where(and(eq(executions.id, id), eq(executions.userId, userId)));
-  const [execution] = await db.select().from(executions).where(eq(executions.id, id)).limit(1);
+  const [execution] = await db
+    .select()
+    .from(executions)
+    .where(and(eq(executions.id, id), eq(executions.userId, userId)))
+    .limit(1);
   return execution;
 }
 
