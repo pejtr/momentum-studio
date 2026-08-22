@@ -330,10 +330,25 @@ export async function getMarketplaceTemplates(filters?: {
     .limit(filters?.limit || 50);
 }
 
-export async function getMarketplaceTemplateById(id: number) {
+export async function getPublishedMarketplaceTemplateById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(marketplaceTemplates).where(eq(marketplaceTemplates.id, id)).limit(1);
+  const result = await db
+    .select()
+    .from(marketplaceTemplates)
+    .where(and(eq(marketplaceTemplates.id, id), eq(marketplaceTemplates.status, "published")))
+    .limit(1);
+  return result[0];
+}
+
+export async function getMarketplaceTemplateForCreator(id: number, creatorId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(marketplaceTemplates)
+    .where(and(eq(marketplaceTemplates.id, id), eq(marketplaceTemplates.creatorId, creatorId)))
+    .limit(1);
   return result[0];
 }
 

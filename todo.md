@@ -888,6 +888,12 @@
 - [x] Ensure cross-user documentation reads return no records
 - [x] Add regression coverage for documentation list isolation
 
+## Security Hardening: Marketplace Publication Access
+- [x] Prevent public template detail requests from exposing draft or rejected records
+- [x] Allow creators to retrieve their own unpublished templates through an authenticated route
+- [x] Block purchases of unpublished templates
+- [x] Add regression coverage for draft visibility and purchase restrictions
+
 ## Security: Admin Role System Revision
 - [ ] Audit schema for role field definition
 - [ ] Create adminProcedure middleware in tRPC

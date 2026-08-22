@@ -221,7 +221,10 @@ export const appRouter = router({
       sortBy: z.enum(["downloads", "rating", "recent", "price"]).optional(),
       minRating: z.number().min(1).max(5).optional(),
     }).optional()).query(({ input }) => db.getMarketplaceTemplates(input)),
-    get: publicProcedure.input(z.object({ id: z.number() })).query(({ input }) => db.getMarketplaceTemplateById(input.id)),
+    get: publicProcedure.input(z.object({ id: z.number() })).query(({ input }) => db.getPublishedMarketplaceTemplateById(input.id)),
+    getOwn: protectedProcedure.input(z.object({ id: z.number() })).query(({ ctx, input }) =>
+      db.getMarketplaceTemplateForCreator(input.id, ctx.user.id)
+    ),
     create: protectedProcedure.input(z.object({
       name: z.string().min(1).max(255),
       description: z.string().optional(),
@@ -235,7 +238,7 @@ export const appRouter = router({
       db.updateMarketplaceTemplate(input.id, ctx.user.id, { status: "published" })
     ),
     purchase: protectedProcedure.input(z.object({ templateId: z.number() })).mutation(async ({ ctx, input }) => {
-      const template = await db.getMarketplaceTemplateById(input.templateId);
+      const template = await db.getPublishedMarketplaceTemplateById(input.templateId);
       if (!template) throw new Error("Template not found");
       await db.createTemplatePurchase({ templateId: input.templateId, userId: ctx.user.id, price: template.price });
       await db.incrementTemplateDownloads(input.templateId);

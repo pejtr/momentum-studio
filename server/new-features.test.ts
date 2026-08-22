@@ -412,6 +412,34 @@ describe("Marketplace Rating & Feedback", () => {
     expect(typeof review.id).toBe("number");
   });
 
+  it("keeps draft templates creator-only and blocks purchase until publication", async () => {
+    const ownerCaller = appRouter.createCaller(createAuthContext().ctx);
+    const otherUserCaller = appRouter.createCaller(createAuthContext(EXECUTION_OWNER_TEST_USER_ID).ctx);
+    const publicCaller = appRouter.createCaller({ user: null } as TrpcContext);
+
+    const draft = await ownerCaller.marketplace.create({
+      name: "Creator-only Draft Template",
+      description: "A draft must not be exposed or purchasable before publication.",
+      category: "testing",
+      platform: "multi",
+      price: 100,
+    });
+
+    await expect(publicCaller.marketplace.get({ id: draft.id })).resolves.toBeUndefined();
+    await expect(otherUserCaller.marketplace.getOwn({ id: draft.id })).resolves.toBeUndefined();
+    await expect(ownerCaller.marketplace.getOwn({ id: draft.id })).resolves.toMatchObject({
+      id: draft.id,
+      status: "draft",
+      creatorId: TEST_USER_ID,
+    });
+    await expect(otherUserCaller.marketplace.purchase({ templateId: draft.id })).rejects.toThrow("Template not found");
+
+    await ownerCaller.marketplace.publish({ id: draft.id });
+    await expect(publicCaller.marketplace.get({ id: draft.id })).resolves.toMatchObject({
+      id: draft.id,
+      status: "published",
+    });
+  });
   it("calculates average rating correctly", async () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
